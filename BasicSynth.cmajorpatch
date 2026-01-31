@@ -1,0 +1,8 @@
+{
+    "ID": "BasicSynth",
+    "version": "1.0",
+    "name": "Basic Synth",
+    "description": "A basic synthesizer created with Cmajor",
+    "source": "BasicSynth.cmajor",
+    "CmajorVersion": 1
+}

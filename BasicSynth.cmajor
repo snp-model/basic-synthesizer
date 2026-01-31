@@ -1,0 +1,16 @@
+graph BasicSynth [[main]]
+{
+    output stream float out;  // 出力ストリーム
+    
+    // 入力パラメータ（GUI上のノブとして表示されます）
+    input gain.volume;
+    input sine.frequencyIn;
+
+    // ノードの定義
+    node sine = std::oscillators::Sine (float, 440);
+    node gain = std::levels::SmoothedGain (float);
+
+    // 接続
+    connection sine -> gain.in;
+    connection gain.out -> out;
+}
