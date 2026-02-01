@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>body { background: red; color: white; font-size: 30px; padding: 20px; }</style>
+</head>
+<body>
+    <h1>DEBUG MODE</h1>
+    <p>If you see this, the view is loading correctly.</p>
+    <script>
+        document.body.innerHTML += "<p>JavaScript is running.</p>";
+        if (window.patch) {
+            document.body.innerHTML += "<p>Cmajor 'patch' object found.</p>";
+        } else {
+            document.body.innerHTML += "<p>Waiting for 'patch' object...</p>";
+        }
+    </script>
+</body>
+</html>

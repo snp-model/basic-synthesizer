@@ -4,6 +4,11 @@
     "name": "Basic Synth",
     "description": "A basic synthesizer created with Cmajor",
     "source": "BasicSynth.cmajor",
-    "view": "view/index.html",
+    "view": {
+        "src": "./view/index.html",
+        "width": 500,
+        "height": 600,
+        "resizable": true
+    },
     "CmajorVersion": 1
 }

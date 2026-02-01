@@ -1,16 +1,282 @@
-graph BasicSynth [[main]]
+
+// BasicSynth.cmajor
+
+/**
+    Converts NoteOn/Off events to Frequency and Gate streams for the voice
+*/
+processor NoteToFreqGate
 {
-    output stream float out;  // 出力ストリーム
+    input event (std::notes::NoteOn, std::notes::NoteOff) eventIn;
+    output stream float frequencyOut;
+    output stream float gateOut;
+
+    float currentNote;
+    float currentFreq = 440.0f;
+    float currentGate = 0.0f;
+
+    event eventIn (std::notes::NoteOn e)
+    {
+        currentNote = float(e.pitch);
+        currentFreq = std::notes::noteToFrequency(e.pitch);
+        currentGate = e.velocity;
+    }
+
+    event eventIn (std::notes::NoteOff e)
+    {
+        if (float(e.pitch) == currentNote)
+        {
+            currentGate = 0.0f;
+        }
+    }
+
+    void main()
+    {
+        loop
+        {
+            frequencyOut <- currentFreq;
+            gateOut <- currentGate;
+            advance();
+        }
+    }
+}
+
+/**
+    Multi-waveform Oscillator
+*/
+processor Oscillator
+{
+    output stream float out;
+    input stream float frequency;
+    input value int waveform [[ name: "Waveform", min: 0, max: 3, init: 0, text: "Sine|Saw|Square|Triangle" ]];
+
+    float phase;
+
+    void main()
+    {
+        loop
+        {
+            // Update phase
+            let phaseIncrement = frequency / float(processor.frequency);
+            phase += phaseIncrement;
+            while (phase >= 1.0f) phase -= 1.0f;
+
+            float sample = 0.0f;
+
+            if (waveform == 0) // Sine
+            {
+                sample = sin(phase * 6.283185307f);
+            }
+            else if (waveform == 1) // Saw
+            {
+                sample = phase * 2.0f - 1.0f;
+            }
+            else if (waveform == 2) // Square
+            {
+                sample = (phase < 0.5f) ? 1.0f : -1.0f;
+            }
+            else // Triangle
+            {
+                sample = 4.0f * abs(phase - 0.5f) - 1.0f;
+            }
+
+            out <- sample;
+            advance();
+        }
+    }
+}
+
+/**
+    Simple ADSR Envelope Generator
+*/
+processor Adsr
+{
+    output stream float out;
+    input value float attack [[ name: "Attack", min: 0.0, max: 10.0, init: 0.1 ]];
+    input value float decay [[ name: "Decay", min: 0.0, max: 10.0, init: 0.1 ]];
+    input value float sustain [[ name: "Sustain", min: 0.0, max: 1.0, init: 1.0 ]];
+    input value float release [[ name: "Release", min: 0.0, max: 10.0, init: 0.1 ]];
+    input stream float gate;
+
+    float currentLevel;
+    float targetLevel;
+    float increment;
+    int state; // 0: Idle, 1: Attack, 2: Decay, 3: Sustain, 4: Release
+
+    void main()
+    {
+        loop
+        {
+            if (gate > 0.0f)
+            {
+                if (state == 0 || state == 4) // Attack from idle or release
+                {
+                    state = 1;
+                    targetLevel = 1.0f;
+                    // Calculate increment for attack
+                    let samples = float(processor.frequency) * attack;
+                    if (samples < 1.0f) increment = 1.0f;
+                    else increment = 1.0f / samples;
+                }
+            }
+            else
+            {
+                if (state != 0 && state != 4) // Release
+                {
+                    state = 4;
+                    targetLevel = 0.0f;
+                    let samples = float(processor.frequency) * release;
+                    if (samples < 1.0f) increment = 1.0f; // Instant
+                    else increment = currentLevel / samples; // Decay from current
+                }
+            }
+
+            if (state == 1) // Attack
+            {
+                currentLevel += increment;
+                if (currentLevel >= 1.0f)
+                {
+                    currentLevel = 1.0f;
+                    state = 2; // Decay
+                    targetLevel = sustain;
+                    let samples = float(processor.frequency) * decay;
+                    if (samples < 1.0f) increment = 1.0f;
+                    else increment = (1.0f - sustain) / samples;
+                }
+            }
+            else if (state == 2) // Decay
+            {
+                currentLevel -= increment;
+                if (currentLevel <= sustain)
+                {
+                    currentLevel = sustain;
+                    state = 3; // Sustain
+                }
+            }
+            else if (state == 4) // Release
+            {
+                currentLevel -= increment;
+                if (currentLevel <= 0.0f)
+                {
+                    currentLevel = 0.0f;
+                    state = 0; // Idle
+                }
+            }
+
+            out <- currentLevel;
+            advance();
+        }
+    }
+}
+
+/**
+    Simple Low Pass Filter
+*/
+processor LowPass
+{
+    input stream float in;
+    input value float frequency [[ name: "Cutoff", min: 20.0, max: 20000.0, init: 1000.0 ]];
+    input value float q [[ name: "Resonance", min: 0.1, max: 10.0, init: 1.0 ]]; 
+    output stream float out;
+
+    float z1;
+
+    void main()
+    {
+        loop
+        {
+            // Simple 1-pole lowpass
+            let dt = 1.0f / float(processor.frequency);
+            let rc = 1.0f / (6.2831853f * frequency);
+            let alpha = dt / (rc + dt);
+            
+            let nextSample = z1 + alpha * (in - z1);
+            out <- nextSample;
+            z1 = nextSample;
+            
+            advance();
+        }
+    }
+}
+
+/**
+     Single Voice Graph
+*/
+graph Voice
+{
+    input event (std::notes::NoteOn, std::notes::NoteOff) eventIn;
+    input value float volume;
+    input osc.waveform;
+    input adsr.attack;
+    input adsr.decay;
+    input adsr.sustain;
+    input adsr.release;
+    input filter.frequency; // Cutoff
+    input filter.q; // Resonance
+
+    output stream float out;
+
+    node
+    {
+        noteHandler = NoteToFreqGate;
+        osc = Oscillator;
+        adsr = Adsr;
+        filter = LowPass;
+    }
+
+    connection
+    {
+        eventIn -> noteHandler.eventIn;
+        noteHandler.frequencyOut -> osc.frequency;
+        noteHandler.gateOut -> adsr.gate;
+
+        osc.out -> filter.in;
+        (filter.out * adsr.out * volume) -> out;
+    }
+}
+
+
+graph BasicSynth [[main, view: "view/index.html"]]
+{
+    input event std::midi::Message midiIn;
+    input value float volume [[ name: "Master Volume", min: 0.0, max: 1.0, init: 0.5 ]];
     
-    // 入力パラメータ（GUI上のノブとして表示されます）
-    input gain.volume;
-    input sine.frequencyIn;
+    // Voice Parameters
+    input value int waveform [[ name: "Waveform", min: 0, max: 3, init: 0, text: "Sine|Saw|Square|Triangle" ]];
+    
+    input value float attack [[ name: "Attack", min: 0.0, max: 10.0, init: 0.1 ]];
+    input value float decay [[ name: "Decay", min: 0.0, max: 10.0, init: 0.1 ]];
+    input value float sustain [[ name: "Sustain", min: 0.0, max: 1.0, init: 1.0 ]];
+    input value float release [[ name: "Release", min: 0.0, max: 10.0, init: 0.1 ]];
 
-    // ノードの定義
-    node sine = std::oscillators::Sine (float, 440);
-    node gain = std::levels::SmoothedGain (float);
+    input value float cutoff [[ name: "Cutoff", min: 20.0, max: 10000.0, init: 2000.0 ]];
+    input value float resonance [[ name: "Resonance", min: 0.1, max: 10.0, init: 1.0 ]];
 
-    // 接続
-    connection sine -> gain.in;
-    connection gain.out -> out;
+    output stream float out;
+
+    node
+    {
+        // 8 Voices Polyphony
+        voices = Voice[8];
+        voiceAllocator = std::voices::VoiceAllocator(8);
+    }
+
+    connection
+    {
+        // Parameter distribution
+        volume -> voices.volume;
+        waveform -> voices.waveform;
+        attack -> voices.attack;
+        decay -> voices.decay;
+        sustain -> voices.sustain;
+        release -> voices.release;
+        cutoff -> voices.frequency;
+        resonance -> voices.q;
+
+        // MIDI Parsing & Voice Allocation
+        midiIn -> std::midi::MPEConverter -> voiceAllocator;
+        voiceAllocator.voiceEventOut -> voices.eventIn;
+
+        // Summing Output (Volume is handled inside Voice now)
+        voices.out -> out;
+    }
 }

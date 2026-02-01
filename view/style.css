@@ -28,6 +28,8 @@ body {
     width: 350px;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    max-height: 95vh; /* Prevent overflow on small screens */
+    overflow-y: auto; /* Allow scrolling if controls don't fit */
 }
 
 .header {
@@ -53,6 +55,16 @@ h1 {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+.control-group-header {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 4px;
+    margin-top: 10px;
 }
 
 label {
@@ -100,4 +112,50 @@ input[type="range"]::-webkit-slider-thumb:hover {
 input[type="range"]:active::-webkit-slider-thumb {
     transform: scale(0.95);
     background: var(--secondary-color);
+}
+
+/* Keyboard Styles */
+.keyboard-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    position: relative;
+    height: 120px;
+    overflow: hidden; /* Hide overflow of keys if needed */
+    user-select: none;
+}
+
+.key {
+    cursor: pointer;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    transition: background-color 0.1s;
+}
+
+.key.white {
+    width: 30px;
+    height: 120px;
+    background: white;
+    border: 1px solid #ccc;
+    z-index: 1;
+}
+
+.key.white:active, .key.white.active {
+    background: #e0e0e0;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+}
+
+.key.black {
+    width: 20px;
+    height: 80px;
+    background: #000;
+    margin-left: -10px;
+    margin-right: -10px;
+    z-index: 2;
+    position: relative;
+}
+
+.key.black:active, .key.black.active {
+    background: #333;
+    box-shadow: inset 0 0 5px rgba(255,255,255,0.2);
 }

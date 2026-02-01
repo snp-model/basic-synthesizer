@@ -96,3 +96,20 @@ graph MySynth [[ main ]] {
 3. **Efficiency**: Keep the `main` loop tight.
 
 When asked to create a synthesizer, start with a Graph that connects an oscillator to an output, preferably with a gain control.
+
+## Lessons Learned / Troubleshooting (Advanced)
+### 1. Prefer Custom Processors over Standard Library
+Standard library components (e.g., `std::oscillators`, `std::envelopes::Adsr`) can sometimes cause instantiation or symbol resolution errors (e.g., `Type references are not allowed`, `Cannot find symbol`).
+**Recommendation:** Implementing basic processors (Oscillator, ADSR, Filter, Gain) from scratch within the project is often more reliable and educational. It avoids external dependency issues.
+
+### 2. MIDI Handling Strategy
+Parsing raw MIDI messages (`std::midi::Message`) inside Cmajor can be complex due to strict typing and `std::midi` library nuances.
+**Recommendation:** Handle MIDI in the host environment (e.g., JavaScript/WebMIDI). Convert MIDI events to simple `float` values (Frequency, Gate) and pass them to the Cmajor patch as `input value`.
+- JS: MIDI Note On -> Calc Freq, Gate = 1 -> Send to Patch
+- Cmajor: `input value float frequency;`, `input value float gate;`
+
+### 3. Stream vs Value Connections
+Cmajor strictly accepts types. You cannot connect a `stream` output (like an envelope signal) to a `value` input (like `gain.gain`).
+- **Error:** `(adsr.out * volume) -> gain.gain;` // Error: Cannot connect stream to value
+- **Solution:** Perform modulation in the connection logic using multiplication.
+  - `(source.out * envelope.out * volume) -> output;`
