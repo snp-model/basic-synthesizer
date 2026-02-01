@@ -48,7 +48,8 @@ function BasicSynthPage() {
     cutoff: 2000,
     resonance: 1.0,
     lfoRate: 1.0,
-    lfoDepth: 0.0
+    lfoDepth: 0.0,
+    volume: 0.3
   };
 
   const handleApplyParams = () => {

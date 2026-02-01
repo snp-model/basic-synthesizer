@@ -192,7 +192,7 @@ class BasicSynth
           "name": "Master Volume",
           "min": 0.0,
           "max": 1,
-          "init": 0.5
+          "init": 0.3
         },
         "purpose": "parameter"
       },

@@ -79,7 +79,7 @@ class BasicSynthView extends HTMLElement {
         super();
         this.patchConnection = patchConnection;
         this.knobs = {};
-        this.viz = { params: { waveform:0, pulseWidth:0.5, volume:0.5, cutoff:2000, resonance:1, attack:0.1, decay:0.1, sustain:1.0, release:0.1, lfoRate:1, lfoDepth:0 } };
+        this.viz = { params: { waveform:0, pulseWidth:0.5, volume:0.3, cutoff:2000, resonance:1, attack:0.1, decay:0.1, sustain:1.0, release:0.1, lfoRate:1, lfoDepth:0 } };
         
         const shadow = this.attachShadow({ mode: 'open' });
         const style = document.createElement('style');
@@ -140,7 +140,7 @@ class BasicSynthView extends HTMLElement {
         
         const vco=this.root.querySelector('#c-vco');
         this.addKnob(vco, 'Pulse Width', 0.01, 0.99, 0.5, 'pulseWidth');
-        this.addKnob(vco, 'Volume', 0, 1, 0.5, 'volume');
+        this.addKnob(vco, 'Volume', 0, 1, 0.3, 'volume');
         
         const vcf=this.root.querySelector('#c-vcf');
         this.addKnob(vcf, 'Cutoff', 20, 10000, 2000, 'cutoff');

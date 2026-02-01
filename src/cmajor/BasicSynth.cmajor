@@ -312,7 +312,7 @@ graph Voice
 graph BasicSynth [[main]]
 {
     input event std::midi::Message midiIn;
-    input value float volume [[ name: "Master Volume", min: 0.0, max: 1.0, init: 0.5 ]];
+    input value float volume [[ name: "Master Volume", min: 0.0, max: 1.0, init: 0.3 ]];
     
     // Oscillator
     input value int waveform [[ name: "Waveform", min: 0, max: 3, init: 0, text: "Sine|Saw|Square|Triangle" ]];
