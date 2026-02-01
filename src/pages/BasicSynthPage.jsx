@@ -1,5 +1,6 @@
 /* © 2026 snp */
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import CmajorViewWrapper from '../components/CmajorViewWrapper';
 import { recipes } from '../data/recipes';
 
@@ -119,6 +120,11 @@ function BasicSynthPage() {
           シンセサイザーの仕組みを、音を作る「レシピ」を通して学びましょう。<br />
           好きな音を選んで、ステップに沿って操作してみてください。
         </p>
+        <div style={{ marginTop: '1rem' }}>
+          <Link to="/fm" style={{ color: '#4a9eff', textDecoration: 'none', fontSize: '1.1rem' }}>
+            → FM合成で音を作る (FM編)
+          </Link>
+        </div>
       </header>
 
       <div className="main-content">
