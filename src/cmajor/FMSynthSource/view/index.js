@@ -1,15 +1,13 @@
 
-// view/index.js
+// view/index.js - FM Synth View
 
-console.log("--- VIEW SCRIPT STARTED ---");
-
-console.log("--- VIEW SCRIPT STARTED ---");
+console.log("--- FM SYNTH VIEW STARTED ---");
 
 // Inline CSS
 const STYLES = `
 * { box-sizing: border-box; }
 :host { display: block; width: 100%; height: 100%; }
-:root { --bg-color: #050505; --panel-color: #121212; --accent-cyan: #00f3ff; }
+:root { --bg-color: #050505; --panel-color: #121212; --accent-cyan: #00f3ff; --accent-orange: #ff9d00; --accent-green: #3ce63c; }
 body { margin: 0; padding: 0; background-color: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
 #synth-root { width: 100%; height: 100%; display: flex; flex-direction: column; background: #111; }
 .visualizer-area { flex: 1; display: flex; background: #050505; padding: 10px; gap: 10px; border-bottom: 2px solid #000; }
@@ -26,8 +24,6 @@ body { margin: 0; padding: 0; background-color: #000; color: #fff; font-family: 
 .knob-swivel::after { content: ''; position: absolute; top: 4px; left: calc(50% - 2px); width: 4px; height: 14px; background: #fff; border-radius: 2px; }
 .knob-label { font-size: 10px; color: #ccc; margin-top: 2px; }
 .knob-value { font-size: 11px; color: #fff; background: #000; padding: 1px 4px; border-radius: 2px; font-family: monospace; }
-.wave-btn { background: #333; color: #ccc; border: 1px solid #555; padding: 2px 5px; font-size: 10px; cursor: pointer; margin: 0 1px; }
-.wave-btn.active { background: #00f3ff; color: #000; border-color: #00f3ff; box-shadow: 0 0 5px #00f3ff; }
 #debug-log { height: 80px; background: #000; color: #0f0; font-family: monospace; font-size: 10px; padding: 5px; overflow-y: auto; border-top: 1px solid #333; }
 .keyboard-area { height: 100px; background: #111; position: relative; display: flex; padding: 10px; margin-top: 5px; border-top: 1px solid #444; }
 .octave { position: relative; display: flex; height: 100%; border-right: 1px solid #000; }
@@ -44,7 +40,7 @@ class Knob {
         this.min = min; this.max = max; this.value = initial; this.updateCallback = updateCallback;
         this.dom = document.createElement('div');
         this.dom.className = 'knob-container';
-        this.dom.id = id; // Set ID on container for lookup
+        this.dom.id = id;
         this.dom.innerHTML = `<div class="knob-swivel"></div><div class="knob-label">${label}</div><div class="knob-value">${initial.toFixed(2)}</div>`;
         this.swivel = this.dom.querySelector('.knob-swivel');
         this.valDisplay = this.dom.querySelector('.knob-value');
@@ -74,12 +70,21 @@ class Knob {
     setValue(v) { this.value = parseFloat(v); this.updateUI(); }
 }
 
-class BasicSynthView extends HTMLElement {
+class FMSynthView extends HTMLElement {
     constructor(patchConnection) {
         super();
         this.patchConnection = patchConnection;
         this.knobs = {};
-        this.viz = { params: { waveform:0, pulseWidth:0.5, volume:0.3, cutoff:2000, resonance:1, attack:0.1, decay:0.1, sustain:1.0, release:0.1, lfoRate:1, lfoDepth:0 } };
+        this.viz = { params: { 
+            volume: 0.3, 
+            carrierRatio: 1.0, 
+            modulatorRatio: 1.0, 
+            fmIndex: 2.0,
+            attack: 0.1, 
+            decay: 0.1, 
+            sustain: 0.7, 
+            release: 0.3 
+        } };
         
         const shadow = this.attachShadow({ mode: 'open' });
         const style = document.createElement('style');
@@ -96,13 +101,16 @@ class BasicSynthView extends HTMLElement {
     connectedCallback() {
         if (this.patchConnection) {
             this.log(`Conn detected.`);
-            const proto = Object.getPrototypeOf(this.patchConnection);
-            const protoKeys = Object.getOwnPropertyNames(proto);
-            this.log(`Proto keys: ${protoKeys.join(',')}`);
-            
-            this.patchConnection.requestParameterValue('waveform');
+            // Request initial parameter values
+            this.patchConnection.requestParameterValue('volume');
+            this.patchConnection.requestParameterValue('carrierRatio');
+            this.patchConnection.requestParameterValue('modulatorRatio');
+            this.patchConnection.requestParameterValue('fmIndex');
+            this.patchConnection.requestParameterValue('attack');
+            this.patchConnection.requestParameterValue('decay');
+            this.patchConnection.requestParameterValue('sustain');
+            this.patchConnection.requestParameterValue('release');
         } else {
-            statusDiv.innerHTML += " | NO CONNECTION";
             this.log("FATAL: patchConnection is null/undefined");
         }
     }
@@ -116,48 +124,43 @@ class BasicSynthView extends HTMLElement {
     renderLayout() {
         this.root.innerHTML = `
             <div class="visualizer-area">
-                <div class="viz-container" id="viz-osc"><div class="viz-label">OSCILLOSCOPE</div></div>
-                <div class="viz-container" id="viz-filter"><div class="viz-label">FILTER</div></div>
+                <div class="viz-container" id="viz-fm"><div class="viz-label">FM SPECTRUM</div></div>
+                <div class="viz-container" id="viz-mod"><div class="viz-label">MODULATOR</div></div>
                 <div class="viz-container" id="viz-adsr"><div class="viz-label">ENVELOPE</div></div>
-                <div class="viz-container" id="viz-lfo"><div class="viz-label">LFO</div></div>
             </div>
             <div class="control-panel">
-                <div class="module"><div class="module-header">OSCILLATOR</div>
-                    <div style="display:flex; justify-content:center; gap:2px;">
-                        <button class="wave-btn" data-w="0">SIN</button><button class="wave-btn" data-w="1">SAW</button>
-                        <button class="wave-btn" data-w="2">SQR</button><button class="wave-btn" data-w="3">TRI</button>
-                    </div>
-                    <div class="module-controls" id="c-vco"></div>
+                <div class="module"><div class="module-header">MODULATOR</div>
+                    <div class="module-controls" id="c-mod"></div>
                 </div>
-                <div class="module"><div class="module-header">FILTER</div><div class="module-controls" id="c-vcf"></div></div>
-                <div class="module"><div class="module-header">ENVELOPE</div><div class="module-controls" id="c-env" style="display:grid; grid-template-columns: 1fr 1fr; justify-items: center; align-content: center;"></div></div>
-                <div class="module"><div class="module-header">LFO</div><div class="module-controls" id="c-lfo"></div></div>
+                <div class="module"><div class="module-header">CARRIER</div>
+                    <div class="module-controls" id="c-car"></div>
+                </div>
+                <div class="module"><div class="module-header">ENVELOPE</div>
+                    <div class="module-controls" id="c-env" style="display:grid; grid-template-columns: 1fr 1fr; justify-items: center; align-content: center;"></div>
+                </div>
             </div>
             <div class="keyboard-area" id="keyboard"></div>
         `;
 
         this.initVisualizers();
         
-        const vco=this.root.querySelector('#c-vco');
-        this.addKnob(vco, 'Pulse Width', 0.01, 0.99, 0.5, 'pulseWidth');
-        this.addKnob(vco, 'Volume', 0, 1, 0.3, 'volume');
+        // MODULATOR module
+        const mod = this.root.querySelector('#c-mod');
+        this.addKnob(mod, 'Mod Ratio', 0.25, 8, 1.0, 'modulatorRatio');
+        this.addKnob(mod, 'FM Index', 0, 10, 2.0, 'fmIndex');
         
-        const vcf=this.root.querySelector('#c-vcf');
-        this.addKnob(vcf, 'Cutoff', 20, 10000, 2000, 'cutoff');
-        this.addKnob(vcf, 'Res', 0.1, 10, 1, 'resonance');
+        // CARRIER module
+        const car = this.root.querySelector('#c-car');
+        this.addKnob(car, 'Car Ratio', 0.25, 8, 1.0, 'carrierRatio');
+        this.addKnob(car, 'Volume', 0, 1, 0.3, 'volume');
 
-        const env=this.root.querySelector('#c-env');
-        this.addKnob(env, 'ATTACK', 0, 5, 0.1, 'attack');
-        this.addKnob(env, 'DECAY', 0, 5, 0.1, 'decay');
-        this.addKnob(env, 'SUSTAIN', 0, 1, 1, 'sustain');
-        this.addKnob(env, 'RELEASE', 0, 5, 0.1, 'release');
+        // ENVELOPE module
+        const env = this.root.querySelector('#c-env');
+        this.addKnob(env, 'ATTACK', 0, 2, 0.1, 'attack');
+        this.addKnob(env, 'DECAY', 0, 2, 0.1, 'decay');
+        this.addKnob(env, 'SUSTAIN', 0, 1, 0.7, 'sustain');
+        this.addKnob(env, 'RELEASE', 0, 5, 0.3, 'release');
 
-        const lfo=this.root.querySelector('#c-lfo');
-        this.addKnob(lfo, 'Rate', 0.1, 20, 1, 'lfoRate');
-        this.addKnob(lfo, 'Depth', 0, 2000, 0, 'lfoDepth');
-
-        this.setupWaveform();
-        this.updateKnobStates();
         this.initKeyboard();
     }
 
@@ -165,7 +168,6 @@ class BasicSynthView extends HTMLElement {
         const kb = this.root.querySelector('#keyboard');
         kb.innerHTML = ''; 
         
-        // --- Pointer Event Handling for Glissando ---
         let isActive = false;
         let lastNote = -1;
 
@@ -175,7 +177,7 @@ class BasicSynthView extends HTMLElement {
             if(isNaN(note)) return;
             
             if (lastNote !== note) {
-                if (lastNote !== -1) noteOff(lastNote); // Stop previous if any
+                if (lastNote !== -1) noteOff(lastNote);
                 
                 el.classList.add('active');
                 this.sendNoteOn(note, 100);
@@ -185,7 +187,6 @@ class BasicSynthView extends HTMLElement {
 
         const noteOff = (note) => {
             if (note === -1) return;
-            // Find element by note to remove class
             const el = kb.querySelector(`.key[data-note="${note}"]`);
             if(el) el.classList.remove('active');
             
@@ -193,23 +194,10 @@ class BasicSynthView extends HTMLElement {
         };
 
         const processPointer = (e) => {
-            // Find key under pointer
-            // We need to look through shadow DOM if necessary, but elementFromPoint works on screen coords
-            // Since we are in shadow DOM, standard elementFromPoint might return the host or nothing if shadowed?
-            // Actually, inside shadow root, we might need a different approach or verify elementFromPoint behavior.
-            // But standard document.elementFromPoint usually pierces or we use this.root.shadowRoot.elementFromPoint if available?
-            // Standard elementFromPoint returns the ShadowHost. We need to drill down.
-            // OR simpler: assume flattened event target for 'over' events? No, move doesn't target elements effectively during capture.
-            
-            // Better approach for Shadow DOM:
-            // use this.shadowRoot.elementFromPoint(x, y)
-            
             const el = this.shadowRoot.elementFromPoint(e.clientX, e.clientY);
             if (el && el.classList.contains('key')) {
                 noteOn(el);
             } else {
-                // If we drifted off a key, should we stop the last note? 
-                // Usually yes, if we are not over any key.
                 if (lastNote !== -1) {
                     noteOff(lastNote);
                     lastNote = -1;
@@ -220,7 +208,7 @@ class BasicSynthView extends HTMLElement {
         kb.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             isActive = true;
-            kb.setPointerCapture(e.pointerId); // Capture pointer to keep events flowing to kb
+            kb.setPointerCapture(e.pointerId);
             processPointer(e);
         });
 
@@ -249,7 +237,6 @@ class BasicSynthView extends HTMLElement {
             }
         });
 
-        // --- Octave Generation ---
         const createOctave = (startMidi, isLastPartial = false) => {
             const container = document.createElement('div');
             container.style.flex = isLastPartial ? '1' : '7'; 
@@ -259,7 +246,6 @@ class BasicSynthView extends HTMLElement {
                 container.dataset.note = startMidi;
                 container.className = 'key white';
                 container.style.borderRight = '1px solid #000'; 
-                // this.setupKeyEvents(container, startMidi); // Removed
                 return container;
             }
 
@@ -268,7 +254,6 @@ class BasicSynthView extends HTMLElement {
                 const k = document.createElement('div');
                 k.className = 'key white';
                 k.dataset.note = startMidi + offset;
-                // this.setupKeyEvents(k, startMidi + offset); // Removed
                 container.appendChild(k);
             });
 
@@ -292,7 +277,6 @@ class BasicSynthView extends HTMLElement {
                 
                 k.style.left = `${leftPct}%`;
                 k.style.width = `${blackW}%`;
-                // this.setupKeyEvents(k, startMidi + bn.offset); // Removed
                 container.appendChild(k);
             });
 
@@ -308,9 +292,6 @@ class BasicSynthView extends HTMLElement {
     sendMidi(status, note, vel) {
         if(!this.patchConnection) return;
 
-        // Pro54 Reference: controlByte | (note << 8) | velocity
-        // controlByte for NoteOn Ch1 is 0x900000
-        // So packing is (Status << 16) | (Note << 8) | Velocity
         const packedMsg = (status << 16) | (note << 8) | vel;
 
         try {
@@ -318,8 +299,6 @@ class BasicSynthView extends HTMLElement {
                 this.patchConnection.sendMIDIInputEvent('midiIn', packedMsg);
                 this.log(`Tx MIDI: 0x${packedMsg.toString(16)}`);
             } else {
-                 // Fallback if that specific method is missing (unlikely if standard view)
-                 // Some hosts might still use sendEvent for MIDI
                  const sender = this.patchConnection.sendEventOrValue || this.patchConnection.sendEvent;
                  if(sender) {
                      sender.call(this.patchConnection, 'midiIn', packedMsg);
@@ -352,54 +331,71 @@ class BasicSynthView extends HTMLElement {
             p.appendChild(c);
             return { ctx: c.getContext('2d'), w: 300, h: 150, color };
         };
-        this.viz.osc = mkCanvas('#viz-osc', '#00f3ff');
-        this.viz.filter = mkCanvas('#viz-filter', '#ff9d00');
+        this.viz.fm = mkCanvas('#viz-fm', '#00f3ff');
+        this.viz.mod = mkCanvas('#viz-mod', '#ff9d00');
         this.viz.adsr = mkCanvas('#viz-adsr', '#3ce63c');
-        this.viz.lfo = mkCanvas('#viz-lfo', '#ff00ff');
         this.loopViz();
     }
 
     loopViz() {
         const loop = () => {
-            this.drawOsc(); this.drawFilter(); this.drawAdsr(); this.drawLfo();
+            this.drawFMSpectrum(); 
+            this.drawModulator(); 
+            this.drawAdsr();
             requestAnimationFrame(loop);
         };
         loop();
     }
 
-    drawOsc() {
-        const { ctx, w, h, color } = this.viz.osc;
-        ctx.clearRect(0,0,w,h); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath();
+    drawFMSpectrum() {
+        const { ctx, w, h, color } = this.viz.fm;
+        ctx.clearRect(0,0,w,h); 
+        ctx.strokeStyle = color; 
+        ctx.lineWidth = 2; 
+        ctx.beginPath();
+        
         const p = this.viz.params;
-        const time = Date.now()/1000;
+        const time = Date.now() / 1000;
+        const carrierFreq = 2; // Base carrier frequency for visualization
+        const modFreq = carrierFreq * p.modulatorRatio;
+        const modIndex = p.fmIndex;
         const amp = p.volume !== undefined ? p.volume : 1.0;
-        for(let x=0; x<w; x++) {
-            let t = (x/w)*6*Math.PI + time*10;
-            let y=0;
-            if (p.waveform===0) y=Math.sin(t);
-            else if (p.waveform===1) { let ph=(t/6.28)%1; if(ph<0)ph+=1; y=ph*2-1; }
-            else if (p.waveform===2) { let ph=(t/6.28)%1; if(ph<0)ph+=1; y=(ph<p.pulseWidth)?1:-1; }
-            else { let ph=(t/6.28)%1; if(ph<0)ph+=1; y=4*Math.abs(ph-0.5)-1; }
-            y *= amp;
-            let py = h/2 - y*(h/3);
-            if(x===0) ctx.moveTo(x,py); else ctx.lineTo(x,py);
+        
+        for(let x = 0; x < w; x++) {
+            const t = (x / w) * 4 * Math.PI + time * 3;
+            // FM synthesis: carrier + modulator
+            const modulator = Math.sin(t * modFreq);
+            const carrier = Math.sin(t * carrierFreq * p.carrierRatio + modIndex * modulator);
+            const y = carrier * amp;
+            const py = h/2 - y * (h/3);
+            if(x === 0) ctx.moveTo(x, py); else ctx.lineTo(x, py);
         }
         ctx.stroke();
     }
 
-    drawFilter() {
-         const { ctx, w, h, color } = this.viz.filter;
-         ctx.clearRect(0,0,w,h); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath();
-         const p = this.viz.params;
-         let cLog = Math.log10(Math.max(20, Math.min(20000, p.cutoff)));
-         let cx = ((cLog-1.3)/3)*w;
-         for(let x=0; x<w; x++) {
-             let y = (x<cx) ? 1 : Math.max(0,1-(x-cx)/50);
-             if (Math.abs(x-cx)<20) y += (p.resonance-0.7)*0.5*(1-Math.abs(x-cx)/20);
-             let py = h*0.8 - y*h*0.5;
-             if(x===0) ctx.moveTo(x,py); else ctx.lineTo(x,py);
-         }
-         ctx.stroke();
+    drawModulator() {
+        const { ctx, w, h, color } = this.viz.mod;
+        ctx.clearRect(0,0,w,h); 
+        ctx.strokeStyle = color; 
+        ctx.lineWidth = 2; 
+        ctx.beginPath();
+        
+        const p = this.viz.params;
+        const time = Date.now() / 1000;
+        const modRatio = p.modulatorRatio || 1.0;
+        
+        for(let x = 0; x < w; x++) {
+            const t = (x / w) * 4 * Math.PI + time * 3;
+            const y = Math.sin(t * modRatio);
+            const py = h/2 - y * (h/3);
+            if(x === 0) ctx.moveTo(x, py); else ctx.lineTo(x, py);
+        }
+        ctx.stroke();
+        
+        // FM Index indicator
+        ctx.fillStyle = '#ff9d00';
+        ctx.font = '10px monospace';
+        ctx.fillText(`Index: ${p.fmIndex.toFixed(1)}`, w - 70, 20);
     }
 
     drawAdsr() {
@@ -422,65 +418,6 @@ class BasicSynthView extends HTMLElement {
         ctx.stroke();
     }
 
-    drawLfo() {
-        const { ctx, w, h, color } = this.viz.lfo;
-        ctx.clearRect(0,0,w,h); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath();
-        const p = this.viz.params;
-        const time = Date.now()/1000;
-        
-        const rate = p.lfoRate || 1.0;
-        const depth = (p.lfoDepth || 0) / 2000.0;
-        const vizAmp = Math.min(1.0, depth * 2);
-        
-        for(let x=0; x<w; x++) {
-            let val = Math.sin((time * rate * 2 * Math.PI) + (x/w)*4*Math.PI);
-            
-            let displayAmp = Math.max(0.05, p.lfoDepth / 2000.0);
-            
-            let y = val * displayAmp; 
-             
-            let h_val = Math.sin(((time * rate) + (x/w)*4)*Math.PI) * (p.lfoDepth / 2000.0);
-            
-            let py = h/2 - h_val*(h/2.5);
-            if(x===0) ctx.moveTo(x,py); else ctx.lineTo(x,py);
-        }
-        ctx.stroke();
-    }
-
-    setupWaveform() {
-        const btns = this.root.querySelectorAll('.wave-btn');
-        btns.forEach(b => {
-             b.onclick = () => {
-                 let v = parseInt(b.dataset.w);
-                 this.patchConnection.sendEventOrValue('waveform', v);
-                 this.viz.params.waveform = v;
-                 this.updateBtns(v);
-                 this.updateKnobStates();
-             };
-        });
-        if(this.patchConnection) {
-            this.patchConnection.addParameterListener('waveform', (v) => {
-                this.viz.params.waveform = v;
-                this.updateBtns(v);
-                this.updateKnobStates();
-            });
-        }
-    }
-
-    updateBtns(v) {
-        this.root.querySelectorAll('.wave-btn').forEach(b => {
-            if(parseInt(b.dataset.w)===v) b.classList.add('active'); else b.classList.remove('active');
-        });
-    }
-
-    updateKnobStates() {
-        const pw = this.root.querySelector('#k-pulseWidth');
-        if(pw) {
-            if (this.viz.params.waveform === 2) pw.classList.remove('disabled');
-            else pw.classList.add('disabled');
-        }
-    }
-
     addKnob(parent, label, min, max, init, param) {
         const id = 'k-' + param;
         const k = new Knob(id, label, min, max, init, (v) => {
@@ -489,6 +426,7 @@ class BasicSynthView extends HTMLElement {
         });
         k.dom.id = id; 
         parent.appendChild(k.dom);
+        this.knobs[param] = k;
         
         if(this.patchConnection) {
             this.patchConnection.addParameterListener(param, (v) => {
@@ -500,6 +438,6 @@ class BasicSynthView extends HTMLElement {
 }
 
 export default function createPatchView(patchConnection) {
-    if (!window.customElements.get("basic-synth-view")) window.customElements.define("basic-synth-view", BasicSynthView);
-    return new BasicSynthView(patchConnection);
+    if (!window.customElements.get("fm-synth-view")) window.customElements.define("fm-synth-view", FMSynthView);
+    return new FMSynthView(patchConnection);
 }
