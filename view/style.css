@@ -1,161 +1,164 @@
 :root {
-    --bg-color: #121212;
-    --surface-color: #1e1e1e;
-    --primary-color: #bb86fc;
-    --secondary-color: #03dac6;
-    --text-color: #e0e0e0;
-    --font-family: 'Inter', sans-serif;
+    --bg-color: #050505;
+    --panel-color: #121212;
+    --module-header: #222222;
+    --accent-cyan: #00f3ff;
+    --accent-orange: #ff9d00;
+    --accent-green: #3ce63c;
 }
 
 body {
     margin: 0;
     padding: 0;
-    font-family: var(--font-family);
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    background-color: #000;
+    color: #fff;
+    font-family: 'Inter', 'Roboto', sans-serif;
+    overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+}
+
+#synth-root {
+    width: 100%;
+    height: 100%;
+    max-width: 900px;
+    max-height: 600px;
+    display: flex;
+    flex-direction: column;
+    background: #111;
+    border: 1px solid #444;
+    border-radius: 8px;
+    box-shadow: 0 20px 100px rgba(0,0,0,1);
+}
+
+/* --- Layout Sections --- */
+.visualizer-area {
+    flex: 1;
+    display: flex;
+    border-bottom: 2px solid #000;
+    background: #000;
+}
+
+.control-panel {
+    height: 250px;
+    display: flex;
+    padding: 10px;
+    gap: 8px; /* Slightly tighter for better fit */
+    background: #151515;
+}
+
+/* --- Module Structure --- */
+.module {
+    flex: 1;
+    min-width: 140px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #444;
+    background: #1a1a1a;
+    border-radius: 4px;
     overflow: hidden;
 }
 
-.synth-container {
-    background: rgba(30, 30, 30, 0.8);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 2rem;
-    width: 350px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    max-height: 95vh; /* Prevent overflow on small screens */
-    overflow-y: auto; /* Allow scrolling if controls don't fit */
+.mod-env {
+    flex: 2; /* Give more space to Envelope */
+    min-width: 280px;
 }
 
-.header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-h1 {
-    font-weight: 300;
+.module-header {
+    background: #252525;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #ffffff !important;
+    text-transform: uppercase;
     letter-spacing: 2px;
-    color: var(--primary-color);
-    margin: 0;
-    text-shadow: 0 0 10px rgba(187, 134, 252, 0.3);
+    border-bottom: 1px solid #333;
 }
 
-.controls {
+.module-controls {
+    flex: 1;
+    display: flex;
+    flex-direction: row; /* Force horizontal */
+    justify-content: space-around;
+    align-items: center;
+    padding: 5px;
+    gap: 2px;
+}
+
+/* --- Knob Component --- */
+.knob-container {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    align-items: center;
+    gap: 8px;
+    padding: 2px;
 }
 
-.control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.control-group-header {
-    font-size: 0.8rem;
-    color: var(--text-color);
-    opacity: 0.7;
-    text-transform: uppercase;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    padding-bottom: 4px;
-    margin-top: 10px;
-}
-
-label {
-    font-size: 0.9rem;
-    color: var(--secondary-color);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 6px;
-    background: #333;
-    border-radius: 3px;
-    outline: none;
-    transition: background 0.3s;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    background: var(--primary-color);
+.knob-swivel {
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 0 10px rgba(187, 134, 252, 0.5);
-    transition: transform 0.2s;
-}
-
-input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-}
-
-.value-display {
-    font-variant-numeric: tabular-nums;
-    text-align: right;
-    font-size: 0.85rem;
-    opacity: 0.8;
-}
-
-/* Micro-animations */
-input[type="range"]:active::-webkit-slider-thumb {
-    transform: scale(0.95);
-    background: var(--secondary-color);
-}
-
-/* Keyboard Styles */
-.keyboard-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 2rem;
+    background: linear-gradient(135deg, #444 0%, #111 100%);
+    border: 2px solid #666;
     position: relative;
-    height: 120px;
-    overflow: hidden; /* Hide overflow of keys if needed */
-    user-select: none;
+    cursor: ns-resize;
+    box-shadow: 
+        inset 0 2px 4px rgba(255,255,255,0.2),
+        0 6px 12px rgba(0,0,0,0.7);
 }
 
-.key {
-    cursor: pointer;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-    transition: background-color 0.1s;
+.knob-swivel::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: calc(50% - 2px);
+    width: 4px;
+    height: 14px;
+    background: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(255,255,255,0.8);
+    transform-origin: center 19px; /* Corrected for 46px circle */
+    z-index: 10;
 }
 
-.key.white {
-    width: 30px;
-    height: 120px;
-    background: white;
-    border: 1px solid #ccc;
-    z-index: 1;
+.knob-label {
+    font-size: 9px;
+    font-weight: 800;
+    color: #eeeeee !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    pointer-events: none;
+    text-align: center;
+    white-space: nowrap;
 }
 
-.key.white:active, .key.white.active {
-    background: #e0e0e0;
-    box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
-}
-
-.key.black {
-    width: 20px;
-    height: 80px;
+.knob-value {
+    font-size: 11px;
+    font-weight: 900;
+    color: #ffffff !important;
+    font-family: 'Courier New', monospace;
     background: #000;
-    margin-left: -10px;
-    margin-right: -10px;
-    z-index: 2;
-    position: relative;
+    padding: 1px 6px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    min-width: 36px;
+    text-align: center;
 }
 
-.key.black:active, .key.black.active {
-    background: #333;
-    box-shadow: inset 0 0 5px rgba(255,255,255,0.2);
+/* Specific Glow for active indicators */
+.mod-vco .knob-swivel::after { box-shadow: 0 0 10px var(--accent-cyan), 0 0 5px #fff; }
+.mod-vcf .knob-swivel::after { box-shadow: 0 0 10px var(--accent-orange), 0 0 5px #fff; }
+.mod-env .knob-swivel::after { box-shadow: 0 0 10px var(--accent-green), 0 0 5px #fff; }
+
+/* --- Keyboard --- */
+.keyboard-section {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    pointer-events: none; /* Container itself shouldn't block */
 }

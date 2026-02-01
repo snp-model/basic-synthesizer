@@ -5,8 +5,8 @@
     "description": "A basic synthesizer created with Cmajor",
     "source": "BasicSynth.cmajor",
     "view": {
-        "src": "view/view_loader.js",
-        "width": 500,
+        "src": "view/index.js",
+        "width": 900,
         "height": 600,
         "resizable": true
     },
