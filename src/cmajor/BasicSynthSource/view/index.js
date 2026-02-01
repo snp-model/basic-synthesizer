@@ -26,8 +26,9 @@ body { margin: 0; padding: 0; background-color: #000; color: #fff; font-family: 
 .knob-swivel::after { content: ''; position: absolute; top: 4px; left: calc(50% - 2px); width: 4px; height: 14px; background: #fff; border-radius: 2px; }
 .knob-label { font-size: 10px; color: #ccc; margin-top: 2px; }
 .knob-value { font-size: 11px; color: #fff; background: #000; padding: 1px 4px; border-radius: 2px; font-family: monospace; }
-.wave-btn { background: #333; color: #ccc; border: 1px solid #555; padding: 2px 5px; font-size: 10px; cursor: pointer; margin: 0 1px; }
+.wave-btn { background: #333; color: #ccc; border: 1px solid #555; padding: 2px 5px; font-size: 10px; cursor: pointer; margin: 0 1px; flex: 1; }
 .wave-btn.active { background: #00f3ff; color: #000; border-color: #00f3ff; box-shadow: 0 0 5px #00f3ff; }
+.waveform-selector { display: flex; justify-content: center; gap: 2px; padding: 5px; }
 #debug-log { height: 80px; background: #000; color: #0f0; font-family: monospace; font-size: 10px; padding: 5px; overflow-y: auto; border-top: 1px solid #333; }
 .keyboard-area { height: 100px; background: #111; position: relative; display: flex; padding: 10px; margin-top: 5px; border-top: 1px solid #444; }
 .octave { position: relative; display: flex; height: 100%; border-right: 1px solid #000; }
@@ -123,7 +124,7 @@ class BasicSynthView extends HTMLElement {
             </div>
             <div class="control-panel">
                 <div class="module"><div class="module-header">OSCILLATOR</div>
-                    <div style="display:flex; justify-content:center; gap:2px;">
+                    <div class="waveform-selector">
                         <button class="wave-btn" data-w="0">SIN</button><button class="wave-btn" data-w="1">SAW</button>
                         <button class="wave-btn" data-w="2">SQR</button><button class="wave-btn" data-w="3">TRI</button>
                     </div>

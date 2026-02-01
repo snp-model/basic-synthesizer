@@ -3,7 +3,6 @@ export const recipes = [
     id: 'retro_lead',
     name: 'ファミコン風 8bit リード',
     category: 'Lead',
-    emoji: '🎮',
     description: 'レトロゲームのような、懐かしくてチープな「ピコピコ音」です。',
     steps: [
       {
@@ -36,7 +35,6 @@ export const recipes = [
     id: 'toy_organ',
     name: 'チープな電子オルガン',
     category: 'Keyboards',
-    emoji: '🎹',
     description: 'おもちゃのキーボードのような、丸くて優しいオルガンサウンドです。',
     steps: [
       {
@@ -69,7 +67,6 @@ export const recipes = [
     id: 'auto_wah',
     name: 'オートワウ・ベース',
     category: 'Bass',
-    emoji: '🎸',
     description: 'フィルターが自動で開閉して「ウワウワ」と喋るようなベース音です。',
     steps: [
       {
@@ -102,7 +99,6 @@ export const recipes = [
     id: 'dreamy_pad',
     name: '幻想的なパッド音',
     category: 'Strings/Pad',
-    emoji: '☁️',
     description: 'じわ〜っと音が立ち上がり、余韻が長く残る幻想的な音です。',
     steps: [
       {
@@ -135,7 +131,6 @@ export const recipes = [
     id: 'bell_sound',
     name: 'キラキラしたベル音',
     category: 'Percussion',
-    emoji: '🔔',
     description: '叩いた瞬間に鳴り、スッと消えていく透明感のある音です。',
     steps: [
       {
@@ -168,7 +163,6 @@ export const recipes = [
     id: 'synth_brass',
     name: '80年代風シンセ・ブラス',
     category: 'Brass',
-    emoji: '🎺',
     description: '華やかで力強い、金管楽器のような音です。',
     steps: [
       {

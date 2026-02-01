@@ -1,0 +1,12 @@
+{
+  "CmajorVersion": 1, 
+  "ID": "dev.serendiproducts.WavetableSynth",
+  "version": "1.0",
+  "name": "Wavetable Synth",
+  "description": "Wavetable Synthesizer with morphing waveforms",
+  "category": "synth",
+  "manufacturer": "snp",
+  "isInstrument": true,
+
+  "source": ["WavetableSynth.cmajor"]
+}

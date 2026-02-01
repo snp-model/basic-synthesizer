@@ -1,0 +1,314 @@
+
+// WavetableSynth.cmajor
+// Wavetable Synthesizer with morphing between waveforms
+
+/**
+    Converts NoteOn/Off events to Frequency and Gate streams
+*/
+processor NoteToFreqGate
+{
+    input event (std::notes::NoteOn, std::notes::NoteOff) eventIn;
+    output stream float frequencyOut;
+    output stream float gateOut;
+
+    float currentNote;
+    float currentFreq = 440.0f;
+    float currentGate = 0.0f;
+
+    event eventIn (std::notes::NoteOn e)
+    {
+        currentNote = float(e.pitch);
+        currentFreq = std::notes::noteToFrequency(e.pitch);
+        currentGate = e.velocity;
+    }
+
+    event eventIn (std::notes::NoteOff e)
+    {
+        if (float(e.pitch) == currentNote)
+        {
+            currentGate = 0.0f;
+        }
+    }
+
+    void main()
+    {
+        loop
+        {
+            frequencyOut <- currentFreq;
+            gateOut <- currentGate;
+            advance();
+        }
+    }
+}
+
+/**
+    Wavetable Oscillator with morphing between 4 waveforms
+    Position 0.0 = Sine
+    Position 0.33 = Saw
+    Position 0.66 = Square
+    Position 1.0 = Triangle
+*/
+processor WavetableOscillator
+{
+    output stream float out;
+    input stream float frequency;
+    input stream float position; // 0.0 to 1.0 - wavetable position
+
+    float phase;
+
+    // Generate individual waveforms
+    float getSine(float p) { return sin(p * 6.283185307f); }
+    
+    float getSaw(float p) { return 2.0f * p - 1.0f; }
+    
+    float getSquare(float p) { return p < 0.5f ? 1.0f : -1.0f; }
+    
+    float getTriangle(float p) { return 4.0f * abs(p - 0.5f) - 1.0f; }
+
+    void main()
+    {
+        loop
+        {
+            // Get all waveform samples
+            let sine = getSine(phase);
+            let saw = getSaw(phase);
+            let square = getSquare(phase);
+            let triangle = getTriangle(phase);
+
+            // Normalize position to 0-1 range
+            let pos = clamp(position, 0.0f, 1.0f);
+            
+            // Interpolate between waveforms based on position
+            // 0.0-0.33: Sine to Saw
+            // 0.33-0.66: Saw to Square  
+            // 0.66-1.0: Square to Triangle
+            float sample;
+            
+            if (pos < 0.333f)
+            {
+                let t = pos / 0.333f;
+                sample = sine * (1.0f - t) + saw * t;
+            }
+            else if (pos < 0.666f)
+            {
+                let t = (pos - 0.333f) / 0.333f;
+                sample = saw * (1.0f - t) + square * t;
+            }
+            else
+            {
+                let t = (pos - 0.666f) / 0.334f;
+                sample = square * (1.0f - t) + triangle * t;
+            }
+
+            // Update phase
+            let phaseIncrement = frequency / float(processor.frequency);
+            phase += phaseIncrement;
+            while (phase >= 1.0f) phase -= 1.0f;
+            while (phase < 0.0f) phase += 1.0f;
+
+            out <- sample;
+            advance();
+        }
+    }
+}
+
+/**
+    LFO for wavetable position modulation (Morph)
+*/
+processor MorphLFO
+{
+    output stream float out;
+    input value float speed [[ name: "Morph Speed", min: 0.0, max: 10.0, init: 0.0 ]];
+    input value float depth [[ name: "Morph Depth", min: 0.0, max: 1.0, init: 0.5 ]];
+
+    float phase;
+
+    void main()
+    {
+        loop
+        {
+            // Triangle LFO output (0.0 to 1.0)
+            let lfoValue = abs(2.0f * phase - 1.0f);
+            
+            // When speed is 0, output 0 (no modulation)
+            // Depth controls the intensity of modulation
+            out <- (speed > 0.0f) ? (lfoValue * depth) : 0.0f;
+
+            // Update phase based on speed
+            if (speed > 0.0f)
+            {
+                let phaseIncrement = speed / float(processor.frequency);
+                phase += phaseIncrement;
+                while (phase >= 1.0f) phase -= 1.0f;
+            }
+            
+            advance();
+        }
+    }
+}
+
+/**
+    Simple ADSR Envelope
+*/
+processor Adsr
+{
+    output stream float out;
+    input value float attack [[ name: "Attack", min: 0.0, max: 2.0, init: 0.1 ]];
+    input value float decay [[ name: "Decay", min: 0.0, max: 2.0, init: 0.1 ]];
+    input value float sustain [[ name: "Sustain", min: 0.0, max: 1.0, init: 0.7 ]];
+    input value float release [[ name: "Release", min: 0.0, max: 5.0, init: 0.3 ]];
+    input stream float gate;
+
+    float currentLevel;
+    int state; // 0: Idle, 1: Attack, 2: Decay, 3: Sustain, 4: Release
+
+    void main()
+    {
+        loop
+        {
+            if (gate > 0.0f)
+            {
+                if (state == 0 || state == 4)
+                {
+                    state = 1;
+                }
+            }
+            else
+            {
+                if (state != 0 && state != 4)
+                {
+                    state = 4;
+                }
+            }
+
+            if (state == 1) // Attack
+            {
+                let attackSamples = float(processor.frequency) * attack;
+                let increment = attackSamples < 1.0f ? 1.0f : 1.0f / attackSamples;
+                currentLevel += increment;
+                if (currentLevel >= 1.0f)
+                {
+                    currentLevel = 1.0f;
+                    state = 2;
+                }
+            }
+            else if (state == 2) // Decay
+            {
+                let decaySamples = float(processor.frequency) * decay;
+                let increment = decaySamples < 1.0f ? 1.0f : (1.0f - sustain) / decaySamples;
+                currentLevel -= increment;
+                if (currentLevel <= sustain)
+                {
+                    currentLevel = sustain;
+                    state = 3;
+                }
+            }
+            else if (state == 3) // Sustain
+            {
+                currentLevel = sustain;
+            }
+            else if (state == 4) // Release
+            {
+                let releaseSamples = float(processor.frequency) * release;
+                let increment = releaseSamples < 1.0f ? currentLevel : currentLevel / releaseSamples;
+                currentLevel -= increment;
+                if (currentLevel <= 0.0f)
+                {
+                    currentLevel = 0.0f;
+                    state = 0;
+                }
+            }
+
+            out <- currentLevel;
+            advance();
+        }
+    }
+}
+
+/**
+    Wavetable Voice
+*/
+graph Voice
+{
+    input event (std::notes::NoteOn, std::notes::NoteOff) eventIn;
+    input value float volume;
+    input value float wavetablePosition;
+    input stream float morphMod; // LFO modulation for position
+    
+    input adsr.attack;
+    input adsr.decay;
+    input adsr.sustain;
+    input adsr.release;
+
+    output stream float out;
+
+    node
+    {
+        noteHandler = NoteToFreqGate;
+        osc = WavetableOscillator;
+        adsr = Adsr;
+    }
+
+    connection
+    {
+        eventIn -> noteHandler.eventIn;
+        noteHandler.gateOut -> adsr.gate;
+
+        // Oscillator frequency
+        noteHandler.frequencyOut -> osc.frequency;
+        
+        // Wavetable position = base position + morph LFO
+        (wavetablePosition + morphMod) -> osc.position;
+
+        // Final output with envelope and volume
+        (osc.out * adsr.out * volume) -> out;
+    }
+}
+
+/**
+    Main Wavetable Synth Graph
+*/
+graph WavetableSynth [[main]]
+{
+    input event std::midi::Message midiIn;
+    input value float volume [[ name: "Master Volume", min: 0.0, max: 1.0, init: 0.3 ]];
+    
+    // Wavetable Parameters
+    input value float wavetablePosition [[ name: "Wavetable Position", min: 0.0, max: 1.0, init: 0.0, step: 0.01 ]];
+    input value float morphSpeed [[ name: "Morph Speed", min: 0.0, max: 10.0, init: 0.0, step: 0.01 ]];
+    input value float morphDepth [[ name: "Morph Depth", min: 0.0, max: 1.0, init: 0.5, step: 0.01 ]];
+    
+    // ADSR
+    input value float attack [[ name: "Attack", min: 0.0, max: 2.0, init: 0.1 ]];
+    input value float decay [[ name: "Decay", min: 0.0, max: 2.0, init: 0.1 ]];
+    input value float sustain [[ name: "Sustain", min: 0.0, max: 1.0, init: 0.7 ]];
+    input value float release [[ name: "Release", min: 0.0, max: 5.0, init: 0.3 ]];
+
+    output stream float out;
+
+    node
+    {
+        voices = Voice[8];
+        voiceAllocator = std::voices::VoiceAllocator(8);
+        morphLfo = MorphLFO;
+    }
+
+    connection
+    {
+        volume -> voices.volume;
+        wavetablePosition -> voices.wavetablePosition;
+        morphSpeed -> morphLfo.speed;
+        morphDepth -> morphLfo.depth;
+        morphLfo.out -> voices.morphMod;
+        
+        attack -> voices.attack;
+        decay -> voices.decay;
+        sustain -> voices.sustain;
+        release -> voices.release;
+
+        midiIn -> std::midi::MPEConverter -> voiceAllocator;
+        voiceAllocator.voiceEventOut -> voices.eventIn;
+
+        voices.out -> out;
+    }
+}

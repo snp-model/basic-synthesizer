@@ -3,7 +3,6 @@ export const fmRecipes = [
     id: 'crystal_bell',
     name: 'クリスタル・ベル',
     category: 'Percussion',
-    emoji: '🔔',
     description: '非整数の比率が生み出す、金属的できらびやかなベル音です。',
     steps: [
       {
@@ -36,7 +35,6 @@ export const fmRecipes = [
     id: 'electric_piano',
     name: 'エレクトリック・ピアノ',
     category: 'Keyboards',
-    emoji: '🎹',
     description: 'FMシンセが得意とする、きらびやかで芯のあるエレピサウンドです。',
     steps: [
       {
@@ -69,7 +67,6 @@ export const fmRecipes = [
     id: 'fm_bass',
     name: 'FMベース',
     category: 'Bass',
-    emoji: '🎸',
     description: '重心の低い、太くてエッジの効いたベース音です。',
     steps: [
       {
@@ -102,7 +99,6 @@ export const fmRecipes = [
     id: 'warm_pad',
     name: '暖かいシンセパッド',
     category: 'Strings/Pad',
-    emoji: '☁️',
     description: '包み込むような柔らかい響きを持つ、FMならではのパッド音です。',
     steps: [
       {
@@ -127,7 +123,6 @@ export const fmRecipes = [
     id: 'fm_flute',
     name: '和やかなフルート',
     category: 'Woodwinds',
-    emoji: '🪈',
     description: '空気が漏れるような質感を再現した木管サウンドです。',
     steps: [
       {
@@ -160,7 +155,6 @@ export const fmRecipes = [
     id: 'fm_marimba',
     name: '木質のマリンバ',
     category: 'Percussion',
-    emoji: '🪵',
     description: '木の温もりを感じる、ポコポコとした打楽器音です。',
     steps: [
       {
@@ -193,7 +187,6 @@ export const fmRecipes = [
     id: 'fm_koto',
     name: '雅な琴',
     category: 'Plucked',
-    emoji: '⛩️',
     description: '和楽器特有の、鋭い弦のハジキ音を再現します。',
     steps: [
       {
@@ -226,7 +219,6 @@ export const fmRecipes = [
     id: 'sci_fi_sound',
     name: '宇宙的サウンド',
     category: 'Effects',
-    emoji: '👽',
     description: 'Indexを最大にしてカオスな音を作ります（※耳にご注意ください）。',
     steps: [
       {

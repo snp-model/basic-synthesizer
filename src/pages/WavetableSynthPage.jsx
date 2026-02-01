@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import CmajorViewWrapper from '../components/CmajorViewWrapper';
-import { fmRecipes } from '../data/fm_recipes';
+import { wavetableRecipes } from '../data/wavetable_recipes';
 
-function FMSynthPage() {
+function WavetableSynthPage() {
   
   // 1. State Declarations
   const [connection, setConnection] = useState(null);
@@ -13,7 +13,7 @@ function FMSynthPage() {
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
 
   // 2. Derived State
-  const currentRecipe = fmRecipes[currentRecipeIdx];
+  const currentRecipe = wavetableRecipes[currentRecipeIdx];
   const currentStep = currentRecipe.steps[currentStepIdx];
 
   // 3. Handlers & Effects
@@ -40,9 +40,8 @@ function FMSynthPage() {
 
   // Default parameters to ensure clean state
   const DEFAULT_PARAMS = {
-    carrierRatio: 1.0,
-    modulatorRatio: 1.0,
-    fmIndex: 2.0,
+    wavetablePosition: 0.0,
+    morphSpeed: 0.0,
     attack: 0.1,
     decay: 0.1,
     sustain: 0.7,
@@ -90,9 +89,9 @@ function FMSynthPage() {
 
   // Parameter formatting helpers
   const PARAM_LABELS = {
-    carrierRatio: "Carrier Ratio",
-    modulatorRatio: "Modulator Ratio",
-    fmIndex: "FM Index",
+    wavetablePosition: "Position",
+    morphSpeed: "Rate",
+    morphDepth: "Depth",
     attack: "Attack",
     decay: "Decay",
     sustain: "Sustain",
@@ -101,23 +100,32 @@ function FMSynthPage() {
   };
 
   const formatParamValue = (key, value) => {
+    if (key === 'wavetablePosition') {
+        const val = parseFloat(value);
+        let label = '';
+        if (val < 0.16) label = '(SIN)';
+        else if (val < 0.5) label = '(SAW)';
+        else if (val < 0.83) label = '(SQR)';
+        else label = '(TRI)';
+        return `${Math.round(val * 100)}% ${label}`;
+    }
     return value;
   };
 
   return (
     <div className="app-container">
       <header>
-        <h1>初めてさわるシンセサイザー - FM編</h1>
+        <h1>初めてさわるシンセサイザー - Wavetable編</h1>
         <p className="intro-text">
-          FM合成の仕組みを、音を作る「レシピ」を通して学びましょう。<br />
-          好きな音を選んで、ステップに沿って操作してみてください。
+          ウェーブテーブル合成の仕組みを、音を作る「レシピ」を通して学びましょう。<br />
+          波形間をモーフィングして、多彩な音色の変化を体験してください。
         </p>
         <div style={{ marginTop: '1rem', display: 'flex', gap: '1.5rem' }}>
           <Link to="/basic" style={{ color: '#4a9eff', textDecoration: 'none', fontSize: '1.1rem' }}>
             ← Basic編
           </Link>
-          <Link to="/wavetable" style={{ color: '#4a9eff', textDecoration: 'none', fontSize: '1.1rem' }}>
-            Wavetable編 →
+          <Link to="/fm" style={{ color: '#4a9eff', textDecoration: 'none', fontSize: '1.1rem' }}>
+            FM編 →
           </Link>
         </div>
       </header>
@@ -126,8 +134,8 @@ function FMSynthPage() {
         <div className="synth-column">
           <div className="synth-wrapper">
             <CmajorViewWrapper 
-              patchLoader={() => import('../cmajor/export/FMSynth/cmaj_FM_Synth.js')}
-              viewLoader={() => import('../cmajor/FMSynthSource/view/index.js')}
+              patchLoader={() => import('../cmajor/export/WavetableSynth/cmaj_Wavetable_Synth.js')}
+              viewLoader={() => import('../cmajor/WavetableSynthSource/view/index.js')}
               onConnectionReady={handleConnectionReady} 
             />
           </div>
@@ -135,7 +143,7 @@ function FMSynthPage() {
 
         <div className="sidebar-column">
           <div className="recipe-grid">
-            {fmRecipes.map((r, i) => (
+            {wavetableRecipes.map((r, i) => (
               <div 
                 key={r.id} 
                 className={`recipe-card ${currentRecipeIdx === i ? 'active' : ''}`}
@@ -214,4 +222,4 @@ function FMSynthPage() {
   );
 }
 
-export default FMSynthPage;
+export default WavetableSynthPage;

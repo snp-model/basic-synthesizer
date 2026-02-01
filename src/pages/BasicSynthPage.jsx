@@ -120,9 +120,12 @@ function BasicSynthPage() {
           シンセサイザーの仕組みを、音を作る「レシピ」を通して学びましょう。<br />
           好きな音を選んで、ステップに沿って操作してみてください。
         </p>
-        <div style={{ marginTop: '1rem' }}>
+        <div style={{ marginTop: '1rem', display: 'flex', gap: '1.5rem' }}>
           <Link to="/fm" style={{ color: '#4a9eff', textDecoration: 'none', fontSize: '1.1rem' }}>
-            → FM合成で音を作る (FM編)
+            FM編 →
+          </Link>
+          <Link to="/wavetable" style={{ color: '#4a9eff', textDecoration: 'none', fontSize: '1.1rem' }}>
+            Wavetable編 →
           </Link>
         </div>
       </header>
