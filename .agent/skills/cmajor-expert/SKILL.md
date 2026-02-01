@@ -149,3 +149,19 @@ export default function createPatchView(patchConnection) {
     "height": 400
 }
 ```
+
+### 5. Virtual Keyboard / Interactive GUI Elements
+When implementing a virtual keyboard or interactive controls in a custom View:
+
+1.  **MIDI Transmission**:
+    *   Use `patchConnection.sendMIDIInputEvent(endpointName, packedMessage)` for reliable MIDI transmission.
+    *   **Packed Message Format**: Cmajor expects a single 32-bit integer for standard MIDI messages.
+        *   Format: `(Status << 16) | (Data1 << 8) | Data2`
+        *   Example (NoteOn): `(0x90 << 16) | (note << 8) | velocity`
+
+2.  **Glissando / Drag Support**:
+    *   Do not use simple `click` or `mousedown` on individual keys.
+    *   Use **Pointer Events** (`pointerdown`, `pointermove`, `pointerup`) on the container.
+    *   Use `setPointerCapture(e.pointerId)` on `pointerdown` to track the cursor even if it leaves the element.
+    *   Use `this.shadowRoot.elementFromPoint(x, y)` to detect which key is under the cursor during a drag, especially if using Shadow DOM.
+

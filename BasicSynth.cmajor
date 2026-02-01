@@ -233,6 +233,22 @@ processor LFO
 }
 
 /**
+    Helper to unpack integer to MIDI message for robust JS communication
+*/
+processor IntToMidi
+{
+    output event std::midi::Message messageOut;
+    input event int32 intIn;
+
+    event intIn (int32 v)
+    {
+        // Use constructor syntax
+        std::midi::Message m = std::midi::Message(v);
+        messageOut <- m;
+    }
+}
+
+/**
      Single Voice Graph
 */
 graph Voice

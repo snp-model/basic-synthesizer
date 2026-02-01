@@ -17,6 +17,7 @@ window.onerror = function(msg, url, line, col, error) {
 
 // Inline CSS
 const STYLES = `
+* { box-sizing: border-box; }
 :host { display: block; width: 100%; height: 100%; }
 :root { --bg-color: #050505; --panel-color: #121212; --accent-cyan: #00f3ff; }
 body { margin: 0; padding: 0; background-color: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
@@ -38,6 +39,14 @@ body { margin: 0; padding: 0; background-color: #000; color: #fff; font-family: 
 .wave-btn { background: #333; color: #ccc; border: 1px solid #555; padding: 2px 5px; font-size: 10px; cursor: pointer; margin: 0 1px; }
 .wave-btn.active { background: #00f3ff; color: #000; border-color: #00f3ff; box-shadow: 0 0 5px #00f3ff; }
 #debug-log { height: 80px; background: #000; color: #0f0; font-family: monospace; font-size: 10px; padding: 5px; overflow-y: auto; border-top: 1px solid #333; }
+.keyboard-area { height: 100px; background: #111; position: relative; display: flex; padding: 10px; margin-top: 5px; border-top: 1px solid #444; }
+.octave { position: relative; display: flex; height: 100%; border-right: 1px solid #000; }
+.key { border-radius: 0 0 4px 4px; cursor: pointer; position: relative; user-select: none; }
+.key.white { flex: 1; height: 100%; background: #fff; border: 1px solid #000; z-index: 1; }
+.key.white.final { flex: 1; height: 100%; background: #fff; border: 1px solid #000; z-index: 1; }
+.key.white.active { background: #aaa; box-shadow: inset 0 0 10px #000; }
+.key.black { height: 60%; background: #000; position: absolute; z-index: 2; border: 1px solid #444; border-top: none; }
+.key.black.active { background: #333; box-shadow: inset 0 0 5px #fff; }
 `;
 
 class Knob {
@@ -96,16 +105,22 @@ class BasicSynthView extends HTMLElement {
 
     connectedCallback() {
         if (this.patchConnection) {
+            this.log(`Conn detected.`);
+            const proto = Object.getPrototypeOf(this.patchConnection);
+            const protoKeys = Object.getOwnPropertyNames(proto);
+            this.log(`Proto keys: ${protoKeys.join(',')}`);
+            
             this.patchConnection.requestParameterValue('waveform');
         } else {
             statusDiv.innerHTML += " | NO CONNECTION";
+            this.log("FATAL: patchConnection is null/undefined");
         }
     }
 
     log(msg) {
-        console.log(msg);
-        const l = this.root.querySelector('#debug-log');
-        if(l) { let d=document.createElement('div'); d.textContent=`> ${msg}`; l.appendChild(d); l.scrollTop=l.scrollHeight; }
+         console.log(msg);
+         const l = this.root.querySelector('#debug-log');
+         if(l) { let d=document.createElement('div'); d.textContent=`> ${msg}`; l.appendChild(d); l.scrollTop=l.scrollHeight; }
     }
 
     renderLayout() {
@@ -128,7 +143,8 @@ class BasicSynthView extends HTMLElement {
                 <div class="module"><div class="module-header">ENVELOPE</div><div class="module-controls" id="c-env" style="display:grid; grid-template-columns: 1fr 1fr; justify-items: center; align-content: center;"></div></div>
                 <div class="module"><div class="module-header">LFO</div><div class="module-controls" id="c-lfo"></div></div>
             </div>
-            <div id="debug-log"><div>View Initialized v5 (Labels Updated)</div></div>
+            <div class="keyboard-area" id="keyboard"></div>
+            <div id="debug-log"><div>View Initialized v9 (Fixed & Robust MIDI)</div></div>
         `;
 
         this.initVisualizers();
@@ -153,6 +169,189 @@ class BasicSynthView extends HTMLElement {
 
         this.setupWaveform();
         this.updateKnobStates();
+        this.initKeyboard();
+    }
+
+    initKeyboard() {
+        const kb = this.root.querySelector('#keyboard');
+        kb.innerHTML = ''; 
+        
+        // --- Pointer Event Handling for Glissando ---
+        let isActive = false;
+        let lastNote = -1;
+
+        const noteOn = (el) => {
+            if(!el) return;
+            const note = parseInt(el.dataset.note);
+            if(isNaN(note)) return;
+            
+            if (lastNote !== note) {
+                if (lastNote !== -1) noteOff(lastNote); // Stop previous if any
+                
+                el.classList.add('active');
+                this.sendNoteOn(note, 100);
+                lastNote = note;
+            }
+        };
+
+        const noteOff = (note) => {
+            if (note === -1) return;
+            // Find element by note to remove class
+            const el = kb.querySelector(`.key[data-note="${note}"]`);
+            if(el) el.classList.remove('active');
+            
+            this.sendNoteOff(note);
+        };
+
+        const processPointer = (e) => {
+            // Find key under pointer
+            // We need to look through shadow DOM if necessary, but elementFromPoint works on screen coords
+            // Since we are in shadow DOM, standard elementFromPoint might return the host or nothing if shadowed?
+            // Actually, inside shadow root, we might need a different approach or verify elementFromPoint behavior.
+            // But standard document.elementFromPoint usually pierces or we use this.root.shadowRoot.elementFromPoint if available?
+            // Standard elementFromPoint returns the ShadowHost. We need to drill down.
+            // OR simpler: assume flattened event target for 'over' events? No, move doesn't target elements effectively during capture.
+            
+            // Better approach for Shadow DOM:
+            // use this.shadowRoot.elementFromPoint(x, y)
+            
+            const el = this.shadowRoot.elementFromPoint(e.clientX, e.clientY);
+            if (el && el.classList.contains('key')) {
+                noteOn(el);
+            } else {
+                // If we drifted off a key, should we stop the last note? 
+                // Usually yes, if we are not over any key.
+                if (lastNote !== -1) {
+                    noteOff(lastNote);
+                    lastNote = -1;
+                }
+            }
+        };
+
+        kb.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            isActive = true;
+            kb.setPointerCapture(e.pointerId); // Capture pointer to keep events flowing to kb
+            processPointer(e);
+        });
+
+        kb.addEventListener('pointermove', (e) => {
+             if(!isActive) return;
+             e.preventDefault();
+             processPointer(e);
+        });
+
+        kb.addEventListener('pointerup', (e) => {
+            if(!isActive) return;
+            e.preventDefault();
+            isActive = false;
+            kb.releasePointerCapture(e.pointerId);
+            if (lastNote !== -1) {
+                noteOff(lastNote);
+                lastNote = -1;
+            }
+        });
+        
+        kb.addEventListener('pointercancel', (e) => {
+            isActive = false;
+            if (lastNote !== -1) {
+                noteOff(lastNote);
+                lastNote = -1;
+            }
+        });
+
+        // --- Octave Generation ---
+        const createOctave = (startMidi, isLastPartial = false) => {
+            const container = document.createElement('div');
+            container.style.flex = isLastPartial ? '1' : '7'; 
+            container.className = isLastPartial ? 'key white final' : 'octave';
+            
+            if (isLastPartial) {
+                container.dataset.note = startMidi;
+                container.className = 'key white';
+                container.style.borderRight = '1px solid #000'; 
+                // this.setupKeyEvents(container, startMidi); // Removed
+                return container;
+            }
+
+            const whiteNotes = [0, 2, 4, 5, 7, 9, 11];
+            whiteNotes.forEach(offset => {
+                const k = document.createElement('div');
+                k.className = 'key white';
+                k.dataset.note = startMidi + offset;
+                // this.setupKeyEvents(k, startMidi + offset); // Removed
+                container.appendChild(k);
+            });
+
+            const blackNotes = [
+                { offset: 1, pos: 1, shift: -0.15 }, 
+                { offset: 3, pos: 2, shift: 0.15 }, 
+                { offset: 6, pos: 4, shift: -0.2 }, 
+                { offset: 8, pos: 5, shift: 0 },    
+                { offset: 10, pos: 6, shift: 0.2 }  
+            ];
+            
+            const whiteW = 100 / 7;
+            const blackW = whiteW * 0.65; 
+
+            blackNotes.forEach(bn => {
+                const k = document.createElement('div');
+                k.className = 'key black';
+                k.dataset.note = startMidi + bn.offset;
+                const centerPct = bn.pos * whiteW;
+                const leftPct = centerPct - (blackW / 2) + (whiteW * bn.shift);
+                
+                k.style.left = `${leftPct}%`;
+                k.style.width = `${blackW}%`;
+                // this.setupKeyEvents(k, startMidi + bn.offset); // Removed
+                container.appendChild(k);
+            });
+
+            return container;
+        };
+
+        [36, 48, 60, 72].forEach(start => {
+            kb.appendChild(createOctave(start, false));
+        });
+        kb.appendChild(createOctave(84, true));
+    }
+
+    sendMidi(status, note, vel) {
+        if(!this.patchConnection) return;
+
+        // Pro54 Reference: controlByte | (note << 8) | velocity
+        // controlByte for NoteOn Ch1 is 0x900000
+        // So packing is (Status << 16) | (Note << 8) | Velocity
+        const packedMsg = (status << 16) | (note << 8) | vel;
+
+        try {
+            if (typeof this.patchConnection.sendMIDIInputEvent === 'function') {
+                this.patchConnection.sendMIDIInputEvent('midiIn', packedMsg);
+                this.log(`Tx MIDI: 0x${packedMsg.toString(16)}`);
+            } else {
+                 // Fallback if that specific method is missing (unlikely if standard view)
+                 // Some hosts might still use sendEvent for MIDI
+                 const sender = this.patchConnection.sendEventOrValue || this.patchConnection.sendEvent;
+                 if(sender) {
+                     sender.call(this.patchConnection, 'midiIn', packedMsg);
+                     this.log(`Tx Event: 0x${packedMsg.toString(16)}`);
+                 } else {
+                     this.log("Err: No sendMIDIInputEvent found");
+                 }
+            }
+        } catch(e) {
+            this.log(`Send Err: ${e}`);
+        }
+    }
+
+    sendNoteOn(note, vel) {
+        this.sendMidi(0x90, note, vel);
+        this.log(`Tx NoteOn: ${note}`);
+    }
+    
+    sendNoteOff(note) {
+         this.sendMidi(0x80, note, 0);
+         this.log(`Tx NoteOff: ${note}`);
     }
 
     initVisualizers() {
@@ -239,50 +438,19 @@ class BasicSynthView extends HTMLElement {
         ctx.clearRect(0,0,w,h); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath();
         const p = this.viz.params;
         const time = Date.now()/1000;
-        // Rate 0.1 to 20. 
-        // We want to visualize the actual speed.
         
         const rate = p.lfoRate || 1.0;
-        const depth = (p.lfoDepth || 0) / 2000.0; // Max depth is usually around 2000Hz in params? or normalized?
-        // Using normalized viz: depth 0-2000. UI knob max 2000.
-        // Let's normalize it for display: full height at max depth.
-        const vizAmp = Math.min(1.0, depth * 2); // Amplify a bit for visibility if depth is low
+        const depth = (p.lfoDepth || 0) / 2000.0;
+        const vizAmp = Math.min(1.0, depth * 2);
         
-        // Draw 2 cycles of sine wave moving
         for(let x=0; x<w; x++) {
-            // Mapping x to phase
-            // window width = 2 seconds? 
-            // t = x / w * duration
-            let t_local = (x/w) * 2.0; 
-            let val = Math.sin((time + t_local) * rate * 2 * Math.PI);
+            let val = Math.sin((time * rate * 2 * Math.PI) + (x/w)*4*Math.PI);
             
-            // Apply depth
-            // If depth is 0, line is flat.
-            val *= (p.lfoDepth / 2000.0); // exact ratio
-            
-            // Auto-scale for visibility? No, showing "depth" is better.
-            // But if depth is 0 it looks broken.
-            // Let's show full waves but change opacity or height based on depth?
-            // User expects to see "Speed".
-            // Let's draw full height wave to show speed, and maybe opacity for depth?
-            // Or just draw pure LFO output shape.
-            
-            // Re-decision: Draw the wave with constant amplitude to visualize frequency clearly,
-            // but scale height by depth so user sees intensity.
-            
-            // Ensure at least small visibility
             let displayAmp = Math.max(0.05, p.lfoDepth / 2000.0);
             
             let y = val * displayAmp; 
-             // Logic check: val is already scaled above? No I reset logic.
-            
-            let wave = Math.sin(((time * rate) + (x/w)*4)*Math.PI); // Time moves phase. x shows spatial wave.
-            
-            // Height logic
-            let h_val = wave * (p.lfoDepth / 2000.0);
-            
-            // To make it look "alive" always, maybe show gray ghost wave if depth is 0?
-            // Let's just stick to actual representation.
+             
+            let h_val = Math.sin(((time * rate) + (x/w)*4)*Math.PI) * (p.lfoDepth / 2000.0);
             
             let py = h/2 - h_val*(h/2.5);
             if(x===0) ctx.moveTo(x,py); else ctx.lineTo(x,py);
@@ -317,7 +485,6 @@ class BasicSynthView extends HTMLElement {
     }
 
     updateKnobStates() {
-        // Only enable Pulse Width when Waveform is Square (2)
         const pw = this.root.querySelector('#k-pulseWidth');
         if(pw) {
             if (this.viz.params.waveform === 2) pw.classList.remove('disabled');
@@ -344,7 +511,7 @@ class BasicSynthView extends HTMLElement {
 }
 
 export default function createPatchView(patchConnection) {
-    statusDiv.textContent = "CREATE PATCH VIEW CALLED (v3)";
+    statusDiv.textContent = "CREATE PATCH VIEW CALLED (v8)";
     statusDiv.style.background = "green";
     if (!window.customElements.get("basic-synth-view")) window.customElements.define("basic-synth-view", BasicSynthView);
     return new BasicSynthView(patchConnection);
