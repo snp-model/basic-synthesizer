@@ -3,8 +3,8 @@ import CmajorViewWrapper from './components/CmajorViewWrapper';
 import { recipes } from './data/recipes';
 
 
+
 function App() {
-  console.log("App component rendering...");
   
   // 1. State Declarations
   const [connection, setConnection] = useState(null);

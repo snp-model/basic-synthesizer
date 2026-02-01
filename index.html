@@ -11,18 +11,7 @@
     </style>
   </head>
   <body>
-    <div id="root">LOADING... (Initializing Application)</div>
-    <div id="error-log"></div>
-    <script>
-      window.onerror = function(message, source, lineno, colno, error) {
-        const log = document.getElementById('error-log');
-        log.textContent += `\n[Global Error]: ${message} at ${source}:${lineno}`;
-      };
-      window.addEventListener('unhandledrejection', function(event) {
-        const log = document.getElementById('error-log');
-        log.textContent += `\n[Unhandled Promise Rejection]: ${event.reason}`;
-      });
-    </script>
+    <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

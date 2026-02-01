@@ -19,7 +19,7 @@ const CmajorViewWrapper = ({ onConnectionReady }) => {
              try {
                 setStatusText("1. Importing modules...");
                 const patchModule = await import('../cmajor/BasicSynth/cmaj_Basic_Synth.js');
-                const viewModule = await import('../cmajor/BasicSynth/view/index.js');
+                const viewModule = await import('../cmajor/view/index.js');
                 const createPatchView = viewModule.default;
 
                 setStatusText("2. Creating AudioContext...");
@@ -106,18 +106,13 @@ const CmajorViewWrapper = ({ onConnectionReady }) => {
         <div 
             ref={containerRef} 
             className="synth-view-container"
-            style={{ width: '100%', height: '100%', background: '#222', border: '5px solid red', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+            style={{ width: '100%', height: '100%', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
-             {/* This content is shown until step 5 wipes it, or if there is an error */ }
-            {errorText ? (
+             {errorText && (
                 <div style={{color: 'red', textAlign: 'center', padding: '20px'}}>
                     <h3>Error Loading Synthesizer</h3>
                     <pre style={{textAlign: 'left', background: '#222', padding: '10px', borderRadius: '4px', overflow: 'auto', maxWidth: '800px'}}>{errorText}</pre>
                 </div>
-            ) : (
-                 <div style={{color: '#888'}}>
-                    <p>{statusText}</p>
-                 </div>
             )}
         </div>
     );

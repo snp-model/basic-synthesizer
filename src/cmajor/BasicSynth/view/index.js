@@ -3,17 +3,7 @@
 
 console.log("--- VIEW SCRIPT STARTED ---");
 
-// Visual proof that script loaded
-const statusDiv = document.createElement('div');
-statusDiv.style.cssText = "position:absolute; top:0; left:0; width:100%; height:20px; background:blue; color:white; z-index:9999; font-size:12px; pointer-events:none; opacity:0.5; display:flex; align-items:center; padding-left:10px;";
-statusDiv.textContent = "JS MODULE LOADED";
-document.body.appendChild(statusDiv);
-
-window.onerror = function(msg, url, line, col, error) {
-    statusDiv.style.background = 'red';
-    statusDiv.innerHTML += ` | ERROR: ${msg}`;
-    return false;
-};
+console.log("--- VIEW SCRIPT STARTED ---");
 
 // Inline CSS
 const STYLES = `
@@ -144,7 +134,6 @@ class BasicSynthView extends HTMLElement {
                 <div class="module"><div class="module-header">LFO</div><div class="module-controls" id="c-lfo"></div></div>
             </div>
             <div class="keyboard-area" id="keyboard"></div>
-            <div id="debug-log"><div>View Initialized v9 (Fixed & Robust MIDI)</div></div>
         `;
 
         this.initVisualizers();
@@ -511,8 +500,6 @@ class BasicSynthView extends HTMLElement {
 }
 
 export default function createPatchView(patchConnection) {
-    statusDiv.textContent = "CREATE PATCH VIEW CALLED (v8)";
-    statusDiv.style.background = "green";
     if (!window.customElements.get("basic-synth-view")) window.customElements.define("basic-synth-view", BasicSynthView);
     return new BasicSynthView(patchConnection);
 }
