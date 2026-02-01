@@ -10,25 +10,25 @@ export const fmRecipes = [
         title: 'MODULATOR RATIO',
         target: 'modulator',
         term: 'モジュレーター比率 (Modulator Ratio)',
-        concept: 'キャリアに対するモジュレーターの周波数比率です。整数比（1.0, 2.0など）では倍音が調和的になり、非整数比（1.25, 3.5など）では非調和な倍音が生まれて金属的な響きになります。',
-        instruction: 'Modulator Ratio を 1.25 に設定してください。非整数比が金属的な響きを作ります。',
-        targetParams: { modulatorRatio: 1.25 }
+        concept: '比率を 3.5 のような非整数に設定すると、数学的に不規則な振動が生まれます。これが金属音特有の「不協和な響き」の正体です。',
+        instruction: 'Modulator Ratio を 3.5 に設定してください。',
+        targetParams: { modulatorRatio: 3.5 }
       },
       {
         title: 'FM INDEX',
         target: 'modulator',
-        term: 'FM Index (変調指数)',
-        concept: 'FMシンセの音色を決める最も重要なパラメータです。値を大きくするほど、倍音が豊かになり、複雑で明るい音色になります。小さくすると、純粋な正弦波に近づきます。',
-        instruction: 'FM Index を 4.0 に設定して、倍音を増やしましょう。',
-        targetParams: { fmIndex: 4.0 }
+        term: 'FM Index',
+        concept: 'ベルの透明感を保つためには、Indexを低めに調整するのがコツです。上げすぎると「濁り」が出て、金属ではなくノイズに近づいてしまいます。',
+        instruction: 'FM Index を 0.5 に設定して、澄んだベル音にしましょう。',
+        targetParams: { fmIndex: 0.5 }
       },
       {
         title: 'ENVELOPE',
         target: 'envelope',
-        term: '減衰音 (Decay Sound)',
-        concept: '鍵盤を押した瞬間に最大音量に達し、その後ゆっくりと消えていく音です。ベルやピアノのような打楽器的な表現に使われます。Sustain を 0 にすることで実現します。',
-        instruction: 'Attack を 0、Decay を 2.0、Sustain を 0、Release を 2.0 に設定して、ベルのような余韻を作りましょう。',
-        targetParams: { attack: 0.0, decay: 2.0, sustain: 0.0, release: 2.0 }
+        term: '余韻のコントロール',
+        concept: 'ベルの音は叩いた瞬間に最大音量になり、その後ゆっくり消えていきます。Sustain を 0 にして、Decay と Release を長く取るのがポイントです。',
+        instruction: 'Attack を 0、Decay を 1.5、Sustain を 0、Release を 1.5 に設定してください。',
+        targetParams: { attack: 0.0, decay: 1.5, sustain: 0.0, release: 1.5 }
       }
     ]
   },
@@ -37,29 +37,29 @@ export const fmRecipes = [
     name: 'エレクトリック・ピアノ',
     category: 'Keyboards',
     emoji: '🎹',
-    description: 'FMシンセの代名詞。DX7の象徴的な音色です。',
+    description: 'FMシンセが得意とする、きらびやかで芯のあるエレピサウンドです。',
     steps: [
       {
-        title: 'CARRIER & MODULATOR',
+        title: 'HARMONIC STACK',
         target: 'modulator',
-        term: 'キャリアとモジュレーターの関係',
-        concept: 'FM合成では、モジュレーター（変調波）がキャリア（搬送波）の周波数を揺らすことで音色を作ります。両者の比率によって、生まれる倍音の構成が変わります。',
-        instruction: 'Carrier Ratio を 1.0、Modulator Ratio を 4.0 に設定します。4倍の高周波で変調することで、エレピらしい倍音が生まれます。',
-        targetParams: { carrierRatio: 1.0, modulatorRatio: 4.0 }
+        term: '整数比の倍音',
+        concept: 'Carrier と Modulator を 1:1 の比率にすると、調和のとれた「シンセらしい」音が作れます。これは全ての音作りの基本となる比率です。',
+        instruction: 'Carrier Ratio を 1.0、Modulator Ratio を 1.0 に設定します。',
+        targetParams: { carrierRatio: 1.0, modulatorRatio: 1.0 }
       },
       {
-        title: 'FM INDEX',
+        title: 'TINES BRIGHTNESS',
         target: 'modulator',
-        term: '明るさの調整',
-        concept: 'FM Index は、音の明るさや倍音の豊かさをコントロールします。エレピでは、強く弾いたときに少し歪むような感じを再現するため、中程度の値を使います。',
-        instruction: 'FM Index を 1.5 に設定します。これがエレピの「ちょうど良い歪み感」です。',
-        targetParams: { fmIndex: 1.5 }
+        term: 'アタックの輝き',
+        concept: 'FM Index を上げることで、ピアノの弦を叩いた瞬間のキラッとした金属的な硬さが生まれます。これがエレピ特有の「プレゼンス」になります。',
+        instruction: 'FM Index を 0.8 に設定します。',
+        targetParams: { fmIndex: 0.8 }
       },
       {
-        title: 'ENVELOPE',
+        title: 'PIANO ENVELOPE',
         target: 'envelope',
-        term: 'ピアノらしい減衰',
-        concept: 'エレクトリックピアノは、叩いた瞬間に音が出て、その後徐々に消えていく楽器です。Sustain を 0 にして、Decay で余韻の長さを調整します。',
+        term: '減衰のプロファイル',
+        concept: 'ピアノは鍵盤を叩いた後に音が減衰し、離すとすぐに止まります。Release を短めに設定することで、キレの良いタイトな演奏感が得られます。',
         instruction: 'Attack を 0.0、Decay を 1.0、Sustain を 0.0、Release を 0.5 に設定してください。',
         targetParams: { attack: 0.0, decay: 1.0, sustain: 0.0, release: 0.5 }
       }
@@ -70,31 +70,155 @@ export const fmRecipes = [
     name: 'FMベース',
     category: 'Bass',
     emoji: '🎸',
-    description: 'モジュレーターで倍音を加え、太くエッジの効いたベース音を作ります。',
+    description: '重心の低い、太くてエッジの効いたベース音です。',
     steps: [
       {
-        title: 'SUB-HARMONIC',
+        title: 'SUB OSCILLATION',
         target: 'modulator',
-        term: 'サブハーモニクス (Sub-Harmonic)',
-        concept: 'モジュレーター比率を 1.0 より小さくすると、元の音より低い周波数成分（サブハーモニクス）が加わります。これによって、音に厚みと低音感が生まれます。',
-        instruction: 'Modulator Ratio を 0.5 に設定します。1オクターブ下の音を混ぜることで、太いベースになります。',
-        targetParams: { modulatorRatio: 0.5 }
+        term: 'サブハーモニクス',
+        concept: 'Modulator をオクターブ下の比率（0.5）に設定すると、基音の下にさらに低い周波数が重なり、お腹に響くような重低音が生まれます。',
+        instruction: 'Carrier Ratio を 1.0、Modulator Ratio を 0.5 に設定します。',
+        targetParams: { carrierRatio: 1.0, modulatorRatio: 0.5 }
       },
       {
-        title: 'FM INDEX',
+        title: 'BASS GRIT',
         target: 'modulator',
-        term: 'エッジの追加',
-        concept: 'ベース音は太さだけでなく、アタック感や「噛みつくようなエッジ」も重要です。FM Index を上げることで、倍音が増えて音の輪郭がはっきりします。',
-        instruction: 'FM Index を 3.0 に設定して、エッジの効いた音にしましょう。',
-        targetParams: { fmIndex: 3.0 }
+        term: 'ベースのうなり',
+        concept: 'FM Index を 2.0 前後まで上げると、音が少し歪み、シンセベースらしい「噛みつくような」鋭いテクスチャが加わります。',
+        instruction: 'FM Index を 1.8 に設定してください。',
+        targetParams: { fmIndex: 1.8 }
       },
       {
-        title: 'ENVELOPE',
+        title: 'BASS PUNCH',
         target: 'envelope',
-        term: 'パンチのあるアタック',
-        concept: 'ベース音は「ボン」という瞬間的な立ち上がりが重要です。Attack を 0 にして、Sustain で伸びる音を確保します。',
-        instruction: 'Attack を 0.0、Decay を 0.4、Sustain を 0.6、Release を 0.2 に設定してください。',
-        targetParams: { attack: 0.0, decay: 0.4, sustain: 0.6, release: 0.2 }
+        term: 'アタック感',
+        concept: 'ベースには「パンチ」が必要です。アタックを最速（0）にし、Decay で音の引き締まり具合を調整することで、グルーヴが生まれます。',
+        instruction: 'Attack を 0.0、Decay を 0.5、Sustain を 0.5、Release を 0.2 に設定してください。',
+        targetParams: { attack: 0.0, decay: 0.5, sustain: 0.5, release: 0.2 }
+      }
+    ]
+  },
+  {
+    id: 'warm_pad',
+    name: '暖かいシンセパッド',
+    category: 'Strings/Pad',
+    emoji: '☁️',
+    description: '包み込むような柔らかい響きを持つ、FMならではのパッド音です。',
+    steps: [
+      {
+        title: 'SOFT OVERTONES',
+        target: 'modulator',
+        term: 'ソフト変調',
+        concept: 'パッド音を暖かくするには、Index を極限まで低く（0.15程度）保つのが秘訣です。耳に痛くない「柔らかな倍音」をわずかに加えます。',
+        instruction: 'Carrier Ratio を 1.0、Modulator Ratio を 1.0、FM Index を 0.15 に設定します。',
+        targetParams: { carrierRatio: 1.0, modulatorRatio: 1.0, fmIndex: 0.15 }
+      },
+      {
+        title: 'SWELLING',
+        target: 'envelope',
+        term: 'じわ〜っとした立ち上がり',
+        concept: 'Attack を長く設定することで、音が霧の中から現れるような効果を生みます。包み込むようなアンビエントな雰囲気には欠かせない設定です。',
+        instruction: 'Attack を 1.5、Decay を 0.5、Sustain を 0.8、Release を 1.5 に設定します。',
+        targetParams: { attack: 1.5, decay: 0.5, sustain: 0.8, release: 1.5 }
+      }
+    ]
+  },
+  {
+    id: 'fm_flute',
+    name: '和やかなフルート',
+    category: 'Woodwinds',
+    emoji: '🪈',
+    description: '空気が漏れるような質感を再現した木管サウンドです。',
+    steps: [
+      {
+        title: 'SINE BASE',
+        target: 'modulator',
+        term: '純正比率',
+        concept: 'フルートのピュアな音色は、C:M = 1:1 のサイン波をベースにします。これが安定した管楽器の響きの土台になります。',
+        instruction: 'Carrier Ratio を 1.0、Modulator Ratio を 1.0 に設定します。',
+        targetParams: { carrierRatio: 1.0, modulatorRatio: 1.0 }
+      },
+      {
+        title: 'AIR NOISE',
+        target: 'modulator',
+        term: '息の成分',
+        concept: 'Index を 0.1 前後のごくわずかな値に設定すると、波形に小さな揺らぎが生まれます。これが「管に息を吹き込む音」に近い質感になります。',
+        instruction: 'FM Index を 0.12 に設定してください。',
+        targetParams: { fmIndex: 0.12 }
+      },
+      {
+        title: 'BREATH ENVELOPE',
+        target: 'envelope',
+        term: '吹き込み感',
+        concept: '実際のフルート演奏のように、音が安定するまでにわずかな「間」を持たせるため、Attack を 0.2 程度に遅らせるのがコツです。',
+        instruction: 'Attack を 0.2、Decay を 0.3、Sustain を 0.8、Release を 0.2 に設定します。',
+        targetParams: { attack: 0.2, decay: 0.3, sustain: 0.8, release: 0.2 }
+      }
+    ]
+  },
+  {
+    id: 'fm_marimba',
+    name: '木質のマリンバ',
+    category: 'Percussion',
+    emoji: '🪵',
+    description: '木の温もりを感じる、ポコポコとした打楽器音です。',
+    steps: [
+      {
+        title: 'WOODEN RATIO',
+        target: 'modulator',
+        term: '複雑な比率',
+        concept: 'Modulator Ratio を 2.0 に設定すると、基音の上の高い成分が強調されます。これが木の板を叩いたときの初期振動のベースになります。',
+        instruction: 'Carrier Ratio を 1.0、Modulator Ratio を 2.0 に設定します。',
+        targetParams: { carrierRatio: 1.0, modulatorRatio: 2.0 }
+      },
+      {
+        title: 'SOFT KNOCK',
+        target: 'modulator',
+        term: '打撃の表現',
+        concept: 'マリンバの柔らかさを出すには、Index を控えめ（0.6）にします。これによって「金属」ではなく「木」らしい丸みのある音が生まれます。',
+        instruction: 'FM Index を 0.6 に設定します。',
+        targetParams: { fmIndex: 0.6 }
+      },
+      {
+        title: 'PERCUSSIVE ENV',
+        target: 'envelope',
+        term: '短い響き',
+        concept: 'マレット楽器は音がすぐに減衰します。Decay を短く（0.4）し、Sustain を 0 にすることで、歯切れの良いパーカッシブな響きを再現します。',
+        instruction: 'Attack を 0.0、Decay を 0.4、Sustain を 0.0、Release を 0.3 に設定してください。',
+        targetParams: { attack: 0.0, decay: 0.4, sustain: 0.0, release: 0.3 }
+      }
+    ]
+  },
+  {
+    id: 'fm_koto',
+    name: '雅な琴',
+    category: 'Plucked',
+    emoji: '⛩️',
+    description: '和楽器特有の、鋭い弦のハジキ音を再現します。',
+    steps: [
+      {
+        title: 'PLUCK RATIO',
+        target: 'modulator',
+        term: '弦の比率',
+        concept: '比率を 2.0 に設定することで、弦楽器らしい明るい倍音の分布を作ります。琴の「ピーン」という芯の強さはこの比率から生まれます。',
+        instruction: 'Carrier Ratio を 1.0、Modulator Ratio を 2.0 に設定します。',
+        targetParams: { carrierRatio: 1.0, modulatorRatio: 2.0 }
+      },
+      {
+        title: 'TWANG',
+        target: 'modulator',
+        term: 'ハジキの質感',
+        concept: 'Index を 1.0 程度まで上げると、爪で弦を強めに弾いたときの「立ち上がりの鋭さ」や「煌びやかさ」が強調されます。',
+        instruction: 'FM Index を 1.0 に設定してください。',
+        targetParams: { fmIndex: 1.0 }
+      },
+      {
+        title: 'LONG RESONANCE',
+        target: 'envelope',
+        term: '弦の振動',
+        concept: '琴の魅力は長い余韻にあります。Decay を 2.0 秒と長く取ることで、弾いた後の弦がいつまでも揺れ続けている様子を表現できます。',
+        instruction: 'Attack を 0.0、Decay を 2.0、Sustain を 0.0、Release を 1.5 に設定します。',
+        targetParams: { attack: 0.0, decay: 2.0, sustain: 0.0, release: 1.5 }
       }
     ]
   },
@@ -103,31 +227,23 @@ export const fmRecipes = [
     name: '宇宙的サウンド',
     category: 'Effects',
     emoji: '👽',
-    description: 'FM Index を極限まで上げて、カオスで未知な音を作ります。',
+    description: 'Indexを最大にしてカオスな音を作ります（※耳にご注意ください）。',
     steps: [
       {
-        title: 'EXTREME MODULATION',
+        title: 'CHAOS INDEX',
         target: 'modulator',
-        term: '過変調 (Over-Modulation)',
-        concept: 'FM Index を極端に大きくすると、元の音の面影がなくなるほど複雑な倍音構造が生まれます。これは「ノイズ」とも「新しい音色」とも言える、カオス的な音です。',
-        instruction: 'FM Index を最大値 10.0 に設定してください。音が劇的に変化します！',
+        term: 'ノイズ生成',
+        concept: 'FM Index を最大（10.0）にすると、波形が崩壊し、カオスなノイズへと変化します。これはアナログシンセでは不可能な、FM独自の破壊的な音作りです。',
+        instruction: 'FM Index を最大値 10.0 に設定してください。',
         targetParams: { fmIndex: 10.0 }
       },
       {
-        title: 'CARRIER PITCH',
+        title: 'ALIEN PITCH',
         target: 'carrier',
-        term: 'キャリア比率 (Carrier Ratio)',
-        concept: 'キャリアの周波数を変えることで、音の基本的なピッチ（高さ）を変えることができます。高い値にすると、金属的で鋭い音になります。',
-        instruction: 'Carrier Ratio を 5.0 に設定して、高音域の宇宙的な音を作りましょう。',
-        targetParams: { carrierRatio: 5.0 }
-      },
-      {
-        title: 'LOW-FREQUENCY WOBBLE',
-        target: 'modulator',
-        term: 'ゆらぎ効果',
-        concept: 'モジュレーター比率を非常に小さくすると、音がゆっくりと「うねる」ような効果が生まれます。これは「トレモロ」や「ビブラート」に似た効果です。',
-        instruction: 'Modulator Ratio を 0.25 に設定します。音がゆっくりと変化し始めます。',
-        targetParams: { modulatorRatio: 0.25 }
+        term: '非現実的な比率',
+        concept: 'Carrier Ratio を高く（5.0）、Modulator を低く（0.25）設定すると、不気味で金属的な高い金属の擦れ合いのような特殊効果音が生まれます。',
+        instruction: 'Carrier Ratio を 5.0、Modulator Ratio を 0.25 に設定します。',
+        targetParams: { carrierRatio: 5.0, modulatorRatio: 0.25 }
       }
     ]
   }

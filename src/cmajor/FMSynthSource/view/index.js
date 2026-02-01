@@ -391,11 +391,6 @@ class FMSynthView extends HTMLElement {
             if(x === 0) ctx.moveTo(x, py); else ctx.lineTo(x, py);
         }
         ctx.stroke();
-        
-        // FM Index indicator
-        ctx.fillStyle = '#ff9d00';
-        ctx.font = '10px monospace';
-        ctx.fillText(`Index: ${p.fmIndex.toFixed(1)}`, w - 70, 20);
     }
 
     drawAdsr() {

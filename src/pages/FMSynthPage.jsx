@@ -51,9 +51,11 @@ function FMSynthPage() {
 
   const handleApplyParams = () => {
      if (connection) {
-      // 1. First, reset all parameters to defaults
+      // 1. First, reset all parameters to defaults (excluding volume)
       Object.entries(DEFAULT_PARAMS).forEach(([paramId, value]) => {
-         updateSynthParam(paramId, value);
+         if (paramId !== 'volume') {
+           updateSynthParam(paramId, value);
+         }
       });
 
       // 2. Apply all parameters from step 0 up to currentStepIdx
