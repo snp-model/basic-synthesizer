@@ -3,8 +3,11 @@ import React, { useEffect, useRef, useState } from 'react';
 /**
  * CmajorViewWrapper
  * 既存の Cmajor Patch View (Web Component) を React 内でマウントするコンポーネント。
+ * @param {Function} patchLoader - パッチモジュールをインポートする関数
+ * @param {Function} viewLoader - viewモジュールをインポートする関数
+ * @param {Function} onConnectionReady - 接続準備完了時のコールバック
  */
-const CmajorViewWrapper = ({ onConnectionReady }) => {
+const CmajorViewWrapper = ({ patchLoader, viewLoader, onConnectionReady }) => {
     const wrapperRef = useRef(null);
     const containerRef = useRef(null);
     const [statusText, setStatusText] = useState("Initializing...");
@@ -41,8 +44,8 @@ const CmajorViewWrapper = ({ onConnectionReady }) => {
         const init = async () => {
              try {
                 setStatusText("1. Importing modules...");
-                const patchModule = await import('../cmajor/BasicSynth/cmaj_Basic_Synth.js');
-                const viewModule = await import('../cmajor/view/index.js');
+                const patchModule = await patchLoader();
+                const viewModule = await viewLoader();
                 const createPatchView = viewModule.default;
 
                 setStatusText("2. Creating AudioContext...");

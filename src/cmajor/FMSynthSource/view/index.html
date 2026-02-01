@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FM Synth</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="synth-container">
+        <div class="header">
+            <h1>FM SYNTH</h1>
+        </div>
+        
+        <div class="controls">
+            <!-- FM Parameters -->
+            <div class="control-group-header">FM Parameters</div>
+            
+            <div class="control-group">
+                <label for="carrierRatio">Carrier Ratio</label>
+                <input type="range" id="carrierRatio" min="0.25" max="8" step="0.25" value="1.0">
+                <span class="value-display" id="carrierRatio-val">1.0</span>
+            </div>
+
+            <div class="control-group">
+                <label for="modulatorRatio">Modulator Ratio</label>
+                <input type="range" id="modulatorRatio" min="0.25" max="8" step="0.25" value="1.0">
+                <span class="value-display" id="modulatorRatio-val">1.0</span>
+            </div>
+
+            <div class="control-group">
+                <label for="fmIndex">FM Index</label>
+                <input type="range" id="fmIndex" min="0" max="10" step="0.1" value="2.0">
+                <span class="value-display" id="fmIndex-val">2.0</span>
+            </div>
+
+            <!-- Volume Control -->
+            <div class="control-group">
+                <label for="vol">Volume</label>
+                <input type="range" id="vol" min="0" max="1" step="0.01" value="0.3">
+                <span class="value-display" id="vol-val">0.30</span>
+            </div>
+
+            <!-- ADSR Controls -->
+            <div class="control-group-header">Envelope (ADSR)</div>
+            
+            <div class="control-group">
+                <label for="attack">Attack</label>
+                <input type="range" id="attack" min="0" max="2" step="0.01" value="0.1">
+                <span class="value-display" id="attack-val">0.1 s</span>
+            </div>
+            
+            <div class="control-group">
+                <label for="decay">Decay</label>
+                <input type="range" id="decay" min="0" max="2" step="0.01" value="0.1">
+                <span class="value-display" id="decay-val">0.1 s</span>
+            </div>
+
+            <div class="control-group">
+                <label for="sustain">Sustain</label>
+                <input type="range" id="sustain" min="0" max="1" step="0.01" value="0.7">
+                <span class="value-display" id="sustain-val">0.7</span>
+            </div>
+
+            <div class="control-group">
+                <label for="release">Release</label>
+                <input type="range" id="release" min="0" max="5" step="0.01" value="0.3">
+                <span class="value-display" id="release-val">0.3 s</span>
+            </div>
+        </div>
+
+
+        <div class="keyboard-container">
+            <!-- C3 to B3 -->
+            <div class="key white" data-note="48"></div> <!-- C -->
+            <div class="key black" data-note="49"></div> <!-- C# -->
+            <div class="key white" data-note="50"></div> <!-- D -->
+            <div class="key black" data-note="51"></div> <!-- D# -->
+            <div class="key white" data-note="52"></div> <!-- E -->
+            <div class="key white" data-note="53"></div> <!-- F -->
+            <div class="key black" data-note="54"></div> <!-- F# -->
+            <div class="key white" data-note="55"></div> <!-- G -->
+            <div class="key black" data-note="56"></div> <!-- G# -->
+            <div class="key white" data-note="57"></div> <!-- A -->
+            <div class="key black" data-note="58"></div> <!-- A# -->
+            <div class="key white" data-note="59"></div> <!-- B -->
+            
+            <!-- C4 to B4 -->
+            <div class="key white" data-note="60"></div> <!-- C -->
+            <div class="key black" data-note="61"></div> <!-- C# -->
+            <div class="key white" data-note="62"></div> <!-- D -->
+            <div class="key black" data-note="63"></div> <!-- D# -->
+            <div class="key white" data-note="64"></div> <!-- E -->
+        </div>
+    </div>
+
+    <!-- Cmajor View Script -->
+    <script src="main.js"></script>
+</body>
+</html>

@@ -124,7 +124,11 @@ function BasicSynthPage() {
       <div className="main-content">
         <div className="synth-column">
           <div className="synth-wrapper">
-            <CmajorViewWrapper onConnectionReady={handleConnectionReady} />
+            <CmajorViewWrapper 
+              patchLoader={() => import('../cmajor/export/BasicSynth/cmaj_Basic_Synth.js')}
+              viewLoader={() => import('../cmajor/BasicSynthSource/view/index.js')}
+              onConnectionReady={handleConnectionReady} 
+            />
           </div>
         </div>
 

@@ -1,0 +1,12 @@
+{
+  "CmajorVersion": 1, 
+  "ID": "dev.serendiproducts.FMSynth",
+  "version": "1.0",
+  "name": "FM Synth",
+  "description": "FM Synthesizer",
+  "category": "synth",
+  "manufacturer": "snp",
+  "isInstrument": true,
+
+  "source": ["FMSynth.cmajor"]
+}
