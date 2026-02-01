@@ -129,11 +129,11 @@ class FMSynthView extends HTMLElement {
                 <div class="viz-container" id="viz-adsr"><div class="viz-label">ENVELOPE</div></div>
             </div>
             <div class="control-panel">
-                <div class="module"><div class="module-header">MODULATOR</div>
-                    <div class="module-controls" id="c-mod"></div>
-                </div>
                 <div class="module"><div class="module-header">CARRIER</div>
                     <div class="module-controls" id="c-car"></div>
+                </div>
+                <div class="module"><div class="module-header">MODULATOR</div>
+                    <div class="module-controls" id="c-mod"></div>
                 </div>
                 <div class="module"><div class="module-header">ENVELOPE</div>
                     <div class="module-controls" id="c-env" style="display:grid; grid-template-columns: 1fr 1fr; justify-items: center; align-content: center;"></div>
