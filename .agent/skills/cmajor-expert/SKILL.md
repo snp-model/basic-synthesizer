@@ -113,3 +113,39 @@ Cmajor strictly accepts types. You cannot connect a `stream` output (like an env
 - **Error:** `(adsr.out * volume) -> gain.gain;` // Error: Cannot connect stream to value
 - **Solution:** Perform modulation in the connection logic using multiplication.
   - `(source.out * envelope.out * volume) -> output;`
+
+### 4. Custom GUI Implementation
+When creating a custom GUI for a Cmajor patch, especially in VS Code extension environments:
+
+1.  **Entry Point**: Do **NOT** use a raw `.html` file as the view source.
+2.  **JS Module**: Use a `.js` file that exports a default function `createPatchView(patchConnection)`.
+3.  **Return Value**: This function must return a DOM element (e.g., a `HTMLElement` or `div`).
+4.  **Manifest**: Point to this `.js` file in the `.cmajorpatch` file.
+
+**Example `view/index.js`:**
+```javascript
+class MyCustomView extends HTMLElement {
+    constructor(patchConnection) {
+        super();
+        this.patchConnection = patchConnection;
+        this.innerHTML = "<h1>Hello Cmajor</h1>";
+    }
+}
+
+// MUST export this function
+export default function createPatchView(patchConnection) {
+    if (!window.customElements.get("my-custom-view")) {
+        window.customElements.define("my-custom-view", MyCustomView);
+    }
+    return new MyCustomView(patchConnection);
+}
+```
+
+**Example `.cmajorpatch`:**
+```json
+"view": {
+    "src": "view/index.js",
+    "width": 500,
+    "height": 400
+}
+```
