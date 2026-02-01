@@ -1,34 +1,204 @@
+/* Light Theme Variables */
 :root {
-  --bg-color: #121212;
-  --text-color: #ffffff;
-  --primary-color: #bb86fc;
-  --secondary-color: #03dac6;
-  --surface-color: #1e1e1e;
+  --bg-color: #f8f9fa;
+  --text-color: #212529;
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --surface-color: #ffffff;
+  --border-color: #dee2e6;
+  --accent-color: #28a745;
 }
 
 body {
-  margin: 0;
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: var(--text-color);
   background-color: var(--bg-color);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#root {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  color: var(--text-color);
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .app-container {
-  max-width: 1280px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.main-content {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.synth-column {
+  flex: 0 0 900px;
+  position: sticky;
+  top: 20px;
+}
+
+.sidebar-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 350px;
+}
+
+header {
   text-align: center;
+}
+
+h1 {
+  font-weight: 300;
+  letter-spacing: -0.5px;
+  margin-bottom: 10px;
+}
+
+.recipe-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.recipe-btn {
+  padding: 10px 20px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.recipe-btn:hover {
+  background: var(--bg-color);
+}
+
+.recipe-btn.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+}
+
+.synth-wrapper {
+  background: #111;
+  padding: 2px;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  overflow: hidden;
+  min-height: 600px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid var(--border-color);
+}
+
+.learning-panel {
+  background: var(--surface-color);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+  border: 1px solid var(--border-color);
+}
+
+.step-nav {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.step-indicator {
+  font-weight: bold;
+  color: var(--primary-color);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.step-title {
+  font-size: 20px;
+  margin: 0;
+}
+
+.step-instruction {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #4a4a4a;
+  margin: 0;
+}
+
+.concept-box {
+  background: #f0f7ff;
+  border-left: 4px solid var(--primary-color);
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  border-radius: 0 8px 8px 0;
+}
+
+.concept-label {
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--primary-color);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.concept-text {
+  font-size: 14px;
+  margin: 0;
+  color: #334e68;
+}
+
+.instruction-box {
+  background: #fffbe6;
+  border-left: 4px solid #faad14;
+  padding: 15px 20px;
+  margin-bottom: 30px;
+  border-radius: 0 8px 8px 0;
+}
+
+.instruction-label {
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  color: #d48806;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.step-controls {
+  display: flex;
+  justify-content: space-between;
+}
+
+.nav-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nav-btn.primary {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.intro-text {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  color: var(--secondary-color);
 }
