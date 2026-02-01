@@ -131,15 +131,15 @@ function App() {
         </div>
 
         <div className="sidebar-column">
-          <div className="recipe-selector">
+          <div className="recipe-grid">
             {recipes.map((r, i) => (
-              <button 
+              <div 
                 key={r.id} 
-                className={`recipe-btn ${currentRecipeIdx === i ? 'active' : ''}`}
+                className={`recipe-card ${currentRecipeIdx === i ? 'active' : ''}`}
                 onClick={() => handleRecipeChange(i)}
               >
-                {r.name}
-              </button>
+                <div className="recipe-card-name">{r.name}</div>
+              </div>
             ))}
           </div>
 

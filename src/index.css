@@ -42,7 +42,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   min-width: 350px;
 }
 
@@ -98,33 +98,43 @@ h1 {
   margin-bottom: 10px;
 }
 
-.recipe-selector {
+.recipe-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 0;
-  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
-.recipe-btn {
-  padding: 10px 20px;
-  border: 1px solid var(--border-color);
+.recipe-card {
+  padding: 6px 14px;
   background: var(--surface-color);
-  border-radius: 30px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
+  user-select: none;
 }
 
-.recipe-btn:hover {
+.recipe-card:hover {
+  border-color: var(--primary-color);
   background: var(--bg-color);
 }
 
-.recipe-btn.active {
+.recipe-card.active {
   background: var(--primary-color);
-  color: white;
   border-color: var(--primary-color);
-  box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+}
+
+.recipe-card-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-color);
+  white-space: nowrap;
+}
+
+.recipe-card.active .recipe-card-name {
+  color: white;
 }
 
 .synth-wrapper {
