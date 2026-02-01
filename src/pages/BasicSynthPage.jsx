@@ -1,3 +1,4 @@
+/* © 2026 snp */
 import React, { useState, useEffect } from 'react';
 import CmajorViewWrapper from '../components/CmajorViewWrapper';
 import { recipes } from '../data/recipes';
@@ -199,6 +200,10 @@ function BasicSynthPage() {
           </div>
         </div>
       </div>
+
+      <footer className="app-footer">
+        <p>© 2026 snp</p>
+      </footer>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+/* © 2026 snp */
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import BasicSynthPage from './pages/BasicSynthPage';
