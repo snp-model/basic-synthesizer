@@ -39,7 +39,7 @@ export class PatchConnection  extends EventListenerList
     /** Returns the current Cmajor version */
     async getCmajorVersion()
     {
-        const version = await import ("/cmaj_api/cmaj-version.js");
+        const version = await import ("./cmaj-version.js");
         return version.getCmajorVersion();
     }
 
