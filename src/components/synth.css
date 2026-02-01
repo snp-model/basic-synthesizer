@@ -1,0 +1,119 @@
+/* Component Styles */
+
+/* Modules & Layout */
+.control-panel { 
+    display: flex; 
+    padding: 10px; 
+    gap: 5px; 
+    background: #151515; 
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.module { 
+    flex: 1; 
+    min-width: 140px; 
+    display: flex; 
+    flex-direction: column; 
+    border: 1px solid #444; 
+    background: #1a1a1a; 
+    margin: 2px; 
+}
+
+.module-header { 
+    background: #222; 
+    padding: 5px; 
+    font-size: 11px; 
+    font-weight: bold; 
+    color: #fff; 
+    text-align: center; 
+    text-transform: uppercase;
+}
+
+.module-controls { 
+    flex: 1; 
+    display: flex; 
+    flex-wrap: wrap; 
+    justify-content: space-around; 
+    align-items: center; 
+    padding: 5px; 
+}
+
+/* Knob */
+.knob-container { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 5px; 
+    margin: 5px; 
+    transition: opacity 0.2s; 
+    user-select: none;
+}
+
+.knob-container.disabled { 
+    opacity: 0.3; 
+    pointer-events: none; 
+    filter: grayscale(100%); 
+}
+
+.knob-swivel { 
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%; 
+    background: linear-gradient(135deg, #444, #111); 
+    border: 2px solid #666; 
+    position: relative; 
+    cursor: ns-resize; 
+}
+
+.knob-swivel::after { 
+    content: ''; 
+    position: absolute; 
+    top: 4px; 
+    left: calc(50% - 2px); 
+    width: 4px; 
+    height: 14px; 
+    background: #fff; 
+    border-radius: 2px; 
+}
+
+.knob-label { 
+    font-size: 10px; 
+    color: #ccc; 
+    margin-top: 2px; 
+    text-transform: uppercase;
+}
+
+.knob-value { 
+    font-size: 11px; 
+    color: #fff; 
+    background: #000; 
+    padding: 1px 4px; 
+    border-radius: 2px; 
+    font-family: monospace; 
+}
+
+/* Waveform Buttons */
+.wave-select {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    margin-bottom: 5px;
+}
+
+.wave-btn { 
+    background: #333; 
+    color: #ccc; 
+    border: 1px solid #555; 
+    padding: 2px 5px; 
+    font-size: 10px; 
+    cursor: pointer; 
+    margin: 0 1px; 
+}
+
+.wave-btn.active { 
+    background: #00f3ff; 
+    color: #000; 
+    border-color: #00f3ff; 
+    box-shadow: 0 0 5px #00f3ff; 
+}

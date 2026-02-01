@@ -1,0 +1,21 @@
+{
+  "name": "basic-synthesizer",
+  "version": "1.0.0",
+  "description": "Cmajor で作成された、Webブラウザベースの GUI を持つシンプルな減算方式シンセサイザーです。",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vitejs/plugin-react": "^5.1.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "vite": "^7.3.1"
+  }
+}
