@@ -5,12 +5,35 @@ import React, { useEffect, useRef, useState } from 'react';
  * 既存の Cmajor Patch View (Web Component) を React 内でマウントするコンポーネント。
  */
 const CmajorViewWrapper = ({ onConnectionReady }) => {
+    const wrapperRef = useRef(null);
     const containerRef = useRef(null);
-
     const [statusText, setStatusText] = useState("Initializing...");
     const [errorText, setErrorText] = useState(null);
+    const [scale, setScale] = useState(1);
+
+    const contentRef = useRef(null);
 
     useEffect(() => {
+        const updateScale = () => {
+            if (wrapperRef.current) {
+                const width = wrapperRef.current.offsetWidth;
+                const newScale = width < 900 ? width / 900 : 1;
+                setScale(newScale);
+                
+                if (contentRef.current) {
+                    contentRef.current.style.transform = `scale(${newScale})`;
+                    // We don't set height on containerRef directly anymore, 
+                    // as it's controlled by React style prop on outer div (sort of).
+                    // Actually, inner container needs enough height to hold the scaled content? 
+                    // No, the inner container width/height 100% is fine, 
+                    // the transforms happens on contentDiv.
+                }
+            }
+        };
+
+        window.addEventListener('resize', updateScale);
+        updateScale(); // Initial call
+
         let audioContext = null;
         let connection = null;
         let view = null;
@@ -26,7 +49,6 @@ const CmajorViewWrapper = ({ onConnectionReady }) => {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 
                 setStatusText("3. Loading Audio Worklet...");
-                // This step might fail if the worklet cannot be created
                 connection = await patchModule.createAudioWorkletNodePatchConnection(audioContext, "basic-synth-worklet");
                 
                 setStatusText("4. Creating View...");
@@ -34,10 +56,21 @@ const CmajorViewWrapper = ({ onConnectionReady }) => {
 
                 setStatusText("5. Mounting View...");
                 if (containerRef.current) {
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = "synth-view-content";
+                    contentDiv.style.width = '900px';
+                    contentDiv.style.height = '600px';
+                    contentDiv.style.transformOrigin = 'top center';
+                    contentDiv.style.transition = 'transform 0.1s ease-out';
+                    contentDiv.appendChild(view);
+                    
+                    contentRef.current = contentDiv;
+                    
                     containerRef.current.innerHTML = '';
-                    view.style.width = '100%';
-                    view.style.height = '100%';
-                    containerRef.current.appendChild(view);
+                    containerRef.current.appendChild(contentDiv);
+                    
+                    // Trigger scale update immediately after mounting
+                    updateScale();
                 }
 
                 setStatusText("6. Connecting Audio...");
@@ -66,54 +99,71 @@ const CmajorViewWrapper = ({ onConnectionReady }) => {
         init();
 
         return () => {
+            window.removeEventListener('resize', updateScale);
             window.removeEventListener('click', handleUserGesture);
             window.removeEventListener('keydown', handleUserGesture);
             
-            if (connection) {
-                // connection.close(); // Calling close might cause issues on hot reload sometimes, but good practice
-            }
             if (audioContext) {
                 audioContext.close();
             }
         };
     }, []);
-
-    // Also update return to show status if view is not yet mounted
-    // Note: Once view is mounted, this JSX is NOT overwritten by React because we manipulated DOM manually?
-    // Actually, React keeps the containerRef. We wipe innerHTML.
-    // So the React 'return' below only matters for the initial render or if we use state to render the message.
-    // BUT we are manually wiping innerHTML in step 5.
-    // To show status updates BEFORE step 5, we should use the JSX return.
     
-    return (
-        <div 
-            ref={containerRef} 
-            className="synth-view-container"
-            style={{ width: '900px', height: '600px', background: '#111', color: '#fff', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
-        >
-            {errorText ? (
-                <div style={{color: 'red', textAlign: 'center'}}>
-                    <h3>Error Loading Synthesizer</h3>
-                    <p>{errorText}</p>
-                </div>
-            ) : (
-                 <p>{statusText}</p>
-            )}
-        </div>
-    );
+    // UI Scaling Style
+    // contentStyle unused effectively since we manipulate DOM directly for transform
+    
+    const containerHeight = 600 * scale;
+
+    const isReady = statusText === "Ready.";
 
     return (
         <div 
-            ref={containerRef} 
+            ref={wrapperRef}
             className="synth-view-container"
-            style={{ width: '100%', height: '100%', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ 
+                width: '100%', 
+                height: `${Math.max(containerHeight, isReady ? 0 : 300)}px`, 
+                minHeight: scale < 1 && isReady ? 'auto' : '300px',
+                background: '#111', 
+                color: '#fff', 
+                overflow: 'hidden',
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                position: 'relative'
+            }}
         >
-             {errorText && (
-                <div style={{color: 'red', textAlign: 'center', padding: '20px'}}>
-                    <h3>Error Loading Synthesizer</h3>
-                    <pre style={{textAlign: 'left', background: '#222', padding: '10px', borderRadius: '4px', overflow: 'auto', maxWidth: '800px'}}>{errorText}</pre>
+            {/* Status / Error Overlay */}
+            {!isReady && (
+                <div style={{
+                    position: 'absolute',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 10
+                }}>
+                    {errorText ? (
+                         <div style={{color: 'red', textAlign: 'center', padding: '20px'}}>
+                            <h3>Error Loading Synthesizer</h3>
+                            <pre style={{textAlign: 'left', background: '#222', padding: '10px', borderRadius: '4px', overflow: 'auto', maxWidth: '800px'}}>{errorText}</pre>
+                        </div>
+                    ) : (
+                        <p>{statusText}</p>
+                    )}
                 </div>
             )}
+
+            {/* Cmajor Mount Point - Managed manually, React should NOT touch children */}
+            <div 
+                ref={containerRef} 
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    display: isReady ? 'flex' : 'none',
+                    justifyContent: 'center',
+                    alignItems: 'flex-start' // Align top
+                }} 
+            />
         </div>
     );
 };
