@@ -210,3 +210,49 @@ h1 {
   margin: 0 auto;
   color: var(--secondary-color);
 }
+
+/* Target Params List */
+.target-params-list {
+  margin-top: 15px;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 10px 15px;
+  border-radius: 6px;
+  border: 1px dashed #d48806;
+}
+
+.target-params-list strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 5px;
+  color: #d48806;
+}
+
+.target-params-list ul {
+  margin: 0;
+  padding-left: 0; 
+  list-style-type: none;
+}
+
+.target-params-list li {
+  font-size: 14px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.param-name {
+  font-weight: bold;
+  color: #555;
+  width: 110px; /* Fixed width for alignment */
+  flex-shrink: 0;
+}
+
+.param-value {
+  color: #007bff;
+  font-family: monospace;
+  font-weight: bold;
+  background: rgba(0, 123, 255, 0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+

@@ -11,7 +11,7 @@ function App() {
   const [audioContext, setAudioContext] = useState(null);
   const [currentRecipeIdx, setCurrentRecipeIdx] = useState(0);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
-  const [autoApply, setAutoApply] = useState(true);
+  const [autoApply, setAutoApply] = useState(false);
 
   // 2. Derived State
   const currentRecipe = recipes[currentRecipeIdx];
@@ -27,6 +27,7 @@ function App() {
   const updateSynthParam = (paramId, value) => {
     if (connection) {
       try {
+        console.log(`Setting param ${paramId} to ${value}`);
         connection.sendEventOrValue(paramId, value);
       } catch (e) {
         console.warn(`Failed to set parameter ${paramId}:`, e);
@@ -34,24 +35,33 @@ function App() {
     }
   };
 
-  // Apply parameters whenever the current step or recipe changes
+  // Removed auto-apply useEffect intentionally to prevent automatic changes
   useEffect(() => {
-    if (autoApply && connection) {
-      // Apply all parameters from step 0 up to currentStepIdx to ensure consistent state
-      for (let i = 0; i <= currentStepIdx; i++) {
-        const step = currentRecipe.steps[i];
-        if (step.targetParams) {
-          Object.entries(step.targetParams).forEach(([paramId, value]) => {
-            updateSynthParam(paramId, value);
-          });
-        }
-      }
-    }
-  }, [currentRecipeIdx, currentStepIdx, connection, autoApply, currentRecipe]);
+     // We only reset when recipe changes, but do not apply parameters automatically
+  }, [currentRecipeIdx]);
+
+  // Default parameters to ensure clean state
+  const DEFAULT_PARAMS = {
+    waveform: 0,
+    pulseWidth: 0.5,
+    attack: 0.1,
+    decay: 0.1,
+    sustain: 1.0,
+    release: 0.1,
+    cutoff: 2000,
+    resonance: 1.0,
+    lfoRate: 1.0,
+    lfoDepth: 0.0
+  };
 
   const handleApplyParams = () => {
      if (connection) {
-      // Apply all parameters from step 0 up to currentStepIdx
+      // 1. First, reset all parameters to defaults
+      Object.entries(DEFAULT_PARAMS).forEach(([paramId, value]) => {
+         updateSynthParam(paramId, value);
+      });
+
+      // 2. Apply all parameters from step 0 up to currentStepIdx
       for (let i = 0; i <= currentStepIdx; i++) {
         const step = currentRecipe.steps[i];
         if (step.targetParams) {
@@ -78,6 +88,29 @@ function App() {
     if (currentStepIdx > 0) {
       setCurrentStepIdx(v => v - 1);
     }
+  };
+
+  // Parameter formatting helpers
+  const PARAM_LABELS = {
+    waveform: "Waveform",
+    pulseWidth: "Pulse Width",
+    attack: "Attack",
+    decay: "Decay",
+    sustain: "Sustain",
+    release: "Release",
+    cutoff: "Cutoff",
+    resonance: "Resonance",
+    lfoRate: "LFO Rate",
+    lfoDepth: "LFO Depth",
+    volume: "Volume"
+  };
+
+  const formatParamValue = (key, value) => {
+    if (key === 'waveform') {
+      const waves = ["Sine (サイン波)", "Saw (ノコギリ波)", "Square (矩形波)", "Triangle (三角波)"];
+      return waves[value] || value;
+    }
+    return value;
   };
 
   return (
@@ -116,16 +149,30 @@ function App() {
               <h2 className="step-title">{currentStep.title}</h2>
             </div>
             
-            <div className="concept-box">
-              <span className="concept-label">セクションの役割</span>
-              <p className="concept-text">{currentStep.concept}</p>
-            </div>
-
             <div className="instruction-box">
-              <span className="instruction-label">ハンズオン解説</span>
+              <span className="instruction-label">やってみよう</span>
               <p className="step-instruction">
                 {currentStep.instruction}
               </p>
+              
+              {currentStep.targetParams && (
+                <div className="target-params-list">
+                  <strong>推奨設定:</strong>
+                  <ul>
+                    {Object.entries(currentStep.targetParams).map(([key, value]) => (
+                      <li key={key}>
+                        <span className="param-name">{PARAM_LABELS[key] || key}:</span> 
+                        <span className="param-value">{formatParamValue(key, value)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            <div className="concept-box">
+              <span className="concept-label">{currentStep.term}</span>
+              <p className="concept-text">{currentStep.concept}</p>
             </div>
 
             <div className="step-controls">
@@ -150,7 +197,7 @@ function App() {
                 onClick={nextStep}
                 disabled={currentStepIdx === currentRecipe.steps.length - 1}
               >
-                {currentStepIdx === currentRecipe.steps.length - 1 ? '完了！' : 'Next →'}
+                {currentStepIdx === currentRecipe.steps.length - 1 ? '完成！' : 'Next →'}
               </button>
             </div>
           </div>

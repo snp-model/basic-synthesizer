@@ -174,31 +174,44 @@ processor Adsr
 /**
     Simple Low Pass Filter
 */
-processor LowPass
+/**
+    Resonant Low Pass Filter (State Variable Filter)
+*/
+processor ResonantLowPass
 {
     input stream float in;
-    input stream float frequency; // Modulated Frequency
+    input stream float frequency;
     input value float q [[ name: "Resonance", min: 0.1, max: 10.0, init: 1.0 ]]; 
     output stream float out;
 
-    float z1;
+    // State variables
+    float s1, s2;
 
     void main()
     {
         loop
         {
-            // Clamp frequency
-            let f = max(20.0f, min(20000.0f, frequency));
+            let cutoff = max(20.0f, min(20000.0f, frequency));
             
-            // Simple 1-pole lowpass
-            let dt = 1.0f / float(processor.frequency);
-            let rc = 1.0f / (6.2831853f * f);
-            let alpha = dt / (rc + dt);
-            
-            let nextSample = z1 + alpha * (in - z1);
-            out <- nextSample;
-            z1 = nextSample;
-            
+            // Calculate coefficients for SVF
+            // g = tan(PI * cutoff / sampleRate)
+            // But we can approximate g ~ PI * cutoff * dt for lower frequencies
+            // Better approximation:
+            let g = tan(3.14159265f * cutoff * float(processor.period));
+            let k = 1.0f / q;
+            let a1 = 1.0f / (1.0f + g * (g + k));
+            let a2 = g * a1;
+            let a3 = g * a2;
+
+            // Process loop
+            let v3 = in - s2;
+            let v1 = a1 * s1 + a2 * v3;
+            let v2 = s2 + a2 * s1 + a3 * v3;
+
+            s1 = 2.0f * v1 - s1;
+            s2 = 2.0f * v2 - s2;
+
+            out <- v2;
             advance();
         }
     }
@@ -275,7 +288,7 @@ graph Voice
         noteHandler = NoteToFreqGate;
         osc = Oscillator;
         adsr = Adsr;
-        filter = LowPass;
+        filter = ResonantLowPass;
     }
 
     connection
