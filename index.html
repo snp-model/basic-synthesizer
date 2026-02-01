@@ -5,9 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Synthesizer Learning</title>
     <meta name="description" content="Learn synthesis with an interactive web-based synthesizer.">
+    <style>
+      body { background-color: #222; color: #fff; font-family: sans-serif; }
+      #error-log { color: #ff6b6b; white-space: pre-wrap; margin: 20px; font-family: monospace; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">LOADING... (Initializing Application)</div>
+    <div id="error-log"></div>
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        const log = document.getElementById('error-log');
+        log.textContent += `\n[Global Error]: ${message} at ${source}:${lineno}`;
+      };
+      window.addEventListener('unhandledrejection', function(event) {
+        const log = document.getElementById('error-log');
+        log.textContent += `\n[Unhandled Promise Rejection]: ${event.reason}`;
+      });
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -190,6 +190,14 @@ h1 {
   cursor: not-allowed;
 }
 
+.nav-btn.secondary {
+  background: #6c757d;
+  color: white;
+}
+.nav-btn.secondary:hover {
+  background: #5a6268;
+}
+
 .nav-btn.primary {
   background: var(--primary-color);
   color: white;

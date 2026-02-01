@@ -1,13 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CmajorViewWrapper from './components/CmajorViewWrapper';
 import { recipes } from './data/recipes';
 
+
 function App() {
+  console.log("App component rendering...");
+  
+  // 1. State Declarations
+  const [connection, setConnection] = useState(null);
+  const [audioContext, setAudioContext] = useState(null);
   const [currentRecipeIdx, setCurrentRecipeIdx] = useState(0);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
+  const [autoApply, setAutoApply] = useState(true);
 
+  // 2. Derived State
   const currentRecipe = recipes[currentRecipeIdx];
   const currentStep = currentRecipe.steps[currentStepIdx];
+
+  // 3. Handlers & Effects
+  const handleConnectionReady = (conn, ctx) => {
+    setConnection(conn);
+    setAudioContext(ctx);
+    console.log("Cmajor connection established");
+  };
+
+  const updateSynthParam = (paramId, value) => {
+    if (connection) {
+      try {
+        connection.sendEventOrValue(paramId, value);
+      } catch (e) {
+        console.warn(`Failed to set parameter ${paramId}:`, e);
+      }
+    }
+  };
+
+  // Apply parameters whenever the current step or recipe changes
+  useEffect(() => {
+    if (autoApply && connection) {
+      // Apply all parameters from step 0 up to currentStepIdx to ensure consistent state
+      for (let i = 0; i <= currentStepIdx; i++) {
+        const step = currentRecipe.steps[i];
+        if (step.targetParams) {
+          Object.entries(step.targetParams).forEach(([paramId, value]) => {
+            updateSynthParam(paramId, value);
+          });
+        }
+      }
+    }
+  }, [currentRecipeIdx, currentStepIdx, connection, autoApply, currentRecipe]);
+
+  const handleApplyParams = () => {
+     if (connection) {
+      // Apply all parameters from step 0 up to currentStepIdx
+      for (let i = 0; i <= currentStepIdx; i++) {
+        const step = currentRecipe.steps[i];
+        if (step.targetParams) {
+          Object.entries(step.targetParams).forEach(([paramId, value]) => {
+            updateSynthParam(paramId, value);
+          });
+        }
+      }
+    }
+  };
 
   const handleRecipeChange = (idx) => {
     setCurrentRecipeIdx(idx);
@@ -39,7 +93,7 @@ function App() {
       <div className="main-content">
         <div className="synth-column">
           <div className="synth-wrapper">
-            <CmajorViewWrapper />
+            <CmajorViewWrapper onConnectionReady={handleConnectionReady} />
           </div>
         </div>
 
@@ -81,6 +135,14 @@ function App() {
                 disabled={currentStepIdx === 0}
               >
                 ← Prev
+              </button>
+
+              <button 
+                className="nav-btn secondary"
+                onClick={handleApplyParams}
+                title="このステップの目標設定をシンセに適用します"
+              >
+                正解をセット
               </button>
               
               <button 
